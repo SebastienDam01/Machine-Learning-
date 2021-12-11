@@ -114,12 +114,35 @@ bike$weathersit<- as.factor(bike$weathersit)
 plot(bike$cnt)
 # Plot sur les mois
 plot(which(bike$mnth==1), bike$cnt[1:31])
+bike_per_month <- bike %>% 
+  group_by(mnth) %>% 
+  summarise(mnth = mnth[1], cnt=sum(cnt))
+bike_per_month$mnth <- as.factor(bike_per_month$mnth)
+ggplot(bike_per_month,aes(x=mnth,y=cnt))+theme_bw()+geom_col()+
+  labs(x='Mois',y='Locations',title='Comptage par mois')+ 
+  geom_bar(stat="identity", fill = "#FF6666")+
+  scale_x_discrete(labels= c("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Sep", "Oct", "Nov", "Dec"))
 # Plot sur les saisons
-ggplot(bike,aes(x=mnth,y=cnt,fill=season))+theme_bw()+geom_col()+
-  labs(x='Mois',y='Locations',title='Comptage selon les saisons par mois')
+bike_per_season <- bike %>% 
+  group_by(season) %>% 
+  summarise(season = season[1], cnt=sum(cnt))
+
+ggplot(bike_per_season,aes(x=season,y=cnt))+theme_bw()+geom_col()+
+  labs(x='Mois',y='Locations',title='Comptage selon les saisons par mois')+
+  scale_x_discrete(limits= c("Printemps", "Ete", "Automne", "Hiver"))+ 
+  geom_bar(stat="identity", fill = "#FF6666")
 # Plot selon les jours par mois
 ggplot(bike,aes(x=mnth,y=cnt,fill=weekday))+theme_bw()+geom_col()+
-  labs(x='Mois',y='Locations',title='Comptage selon les jours par mois')
+  labs(x='Saisons',y='Locations',title='Comptage selon les jours par mois')
+
+bike_per_weekday <- bike %>% 
+  group_by(weekday) %>% 
+  summarise(weekday = weekday[1], cnt=sum(cnt))
+
+ggplot(bike_per_weekday,aes(x=weekday,y=cnt))+theme_bw()+geom_col()+
+  labs(x='Mois',y='Locations',title='Comptage selon les saisons par mois')+
+  scale_x_discrete(labels= c("Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi","Dimanche"))+ 
+  geom_bar(stat="identity", fill = "#FF6666")
 # Plot selon les vacances ou non 
 ggplot(bike,aes(x=holiday,y=cnt))+geom_col()+theme_bw()+
   labs(x='Vacances',y='Locations',title='Holiday wise distribution of counts')
