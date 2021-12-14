@@ -94,7 +94,7 @@ missing_val
 print(unique(bike$yr))
 bike$yr <- NULL 
 
-# $instant ne sert à rien, ça correspond simplement aux jours
+# $instant ne sert à rien, ça correspond simplement aux index
 
 bike$instant <- NULL
 
@@ -191,7 +191,7 @@ panel.cor <- function(x, y){
 # Create the plots
 pairs(bike[, 8:11], lower.panel = panel.cor)
 
-# C'est clairement atemp, enlevons là de notre jeu de données
+# C'est clairement atemp car R[temp, atemp] = 1, enlevons là de notre jeu de données
 
 bike$atemp <- NULL
 
@@ -200,3 +200,29 @@ names(bike)
 # En clair, il faudra créer des dummy variables pour s'occuper des variables qualitatives.
 # Voir lesquelles on peut regrouper ensemble si c'est utile ou non
 # J'ai un doute quant à l'utilité de la variable dteday, vu toutes les autres infos qu'on a
+
+# Régression linéaire pour voir les coefficients significativement non nuls.
+
+model.reg <- lm(cnt ~. , data = bike)
+summary(model.reg)
+
+# NA sur dteday et yr. Par contre, des coefficients ont des valeurs étonnament faibles
+# tandis que d'autres sont élevées alors que je m'attendais à voir moins.
+# Dans tous les cas, la régression linéaire n'est pas très efficace en général donc on utilise d'autres méthodes.
+
+plot(bike$cnt, rstandard(model.reg))
+abline(h=0)
+
+# semble suivre une structure croissante = > annonce un mauvais ajustement
+# du modèle ou autocorrélation des résidus (non indép, voir TP2).
+
+# Test de normalité
+
+# QQ norm
+qqnorm(resid(model.reg))
+qqline(resid(model.reg))
+# valeurs qui s'éloignent pour les faibles quantiles négatifs
+
+# Test de shapiro-wilk
+shapiro.test(resid(model.reg))
+# p-value = 0.0009319, il est très faible, donc on peut rejeter l'hypothèse de normalité des résidus
