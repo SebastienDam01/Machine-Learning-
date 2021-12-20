@@ -31,8 +31,8 @@ phonemes_pc$y = phonemes$y
 y = factor(phonemes_pc$y)
 col=as.numeric(factor(y))
 
-errors <-  matrix(0, 10, 12)
-colnames(errors) <- c("NB", "Knn", "LDA", "QDA", "FDA", "RL", "Ridge", "Lasso", "ElasticNet", "Bagging", "RF", "SVM")
+errors <-  matrix(0, 10, 14)
+colnames(errors) <- c("NB", "Knn", "LDA", "QDA", "FDA", "RL", "Ridge", "Lasso", "ElasticNet", "Bagging", "RF", "SVM", "GMM", "GMM_EDDA", "GAM")
 
 # K Fold cross validation on Naive Bayes
 
@@ -55,6 +55,7 @@ for(i in (1:10)){
 }
 
 # K Fold cross validation on KNN
+# normalize data
 
 # Nested cross-validation
 phonemes_pc$y <- as.numeric(factor(phonemes_pc$y))
@@ -134,6 +135,8 @@ for(outer.fold in folds.outer){
 
 phonemes_pc$y = phonemes$y
 
+## returns best hyperparameter : 22
+
 # K-Fold cross validation on LDA
 
 CV <- rep(0,10)
@@ -208,7 +211,7 @@ for(i in (1:10)){
   #Creating test data
   test_data <- phonemes_pc[fold[[i]], ]
   
-  rl.phonemes_pc <- multinom(y~., data=train_data)
+  rl.phonemes_pc <- nnet::multinom(y~., data=train_data)
   pred.phonemes_pc <- predict(rl.phonemes_pc, newdata=test_data)
   
   perf <- table(test_data$y, pred.phonemes_pc)
@@ -220,6 +223,7 @@ for(i in (1:10)){
 # K Fold cross validation on Ridge
 
 CV <- rep(0,10)
+best.lambda.ridge.CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(phonemes_pc$y, k=10))
 for(i in (1:10)){
@@ -237,6 +241,7 @@ for(i in (1:10)){
   
   ridge.phonemes_pc <- cv.glmnet(x, y, alpha=0, family='multinomial', nfold=3)
   best.lambda = ridge.phonemes_pc$lambda.min
+  best.lambda.ridge.CV[i] <- best.lambda
   
   pred.phonemes_pc <- predict(ridge.phonemes_pc, newx=X.test, s="lambda.min", type="class")
   
@@ -244,9 +249,12 @@ for(i in (1:10)){
   errors[i, c("Ridge")] <- CV[i]
 }
 
+## mean of best.lambda.ridge.CV gives 0.03303924
+
 # K Fold cross validation on Lasso
 
 CV <- rep(0,10)
+best.lambda.lasso.CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(phonemes_pc$y, k=10))
 for(i in (1:10)){
@@ -264,6 +272,7 @@ for(i in (1:10)){
   
   lasso.phonemes_pc <- cv.glmnet(x, y, alpha=1, family='multinomial', nfold=3)
   best.lambda = lasso.phonemes_pc$lambda.min
+  best.lambda.lasso.CV[i] <- best.lambda
   
   pred.phonemes_pc <- predict(lasso.phonemes_pc, newx=X.test, s="lambda.min", type="class")
   
@@ -271,8 +280,12 @@ for(i in (1:10)){
   errors[i, c("Lasso")] <- CV[i]
 }
 
+## mean of best.lambda.lasso.CV gives 0.0007214317
+
 # K Fold cross validation on Elastic Net
 
+best.alpha.EL.CV <- rep(0,10)
+best.lambda.EL.CV <- rep(0,10)
 CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(phonemes_pc$y, k=10))
@@ -286,6 +299,9 @@ for(i in (1:10)){
   elastic_net_cv <- train(y ~ ., data = train_data, method = "glmnet", trControl = train_control )
   best.alpha <- elastic_net_cv$bestTune[1,1]
   best.lambda <- elastic_net_cv$bestTune[1,2]
+  
+  best.alpha.EL.CV[i] <- best.alpha
+  best.lambda.EL.CV[i] <- best.lambda
   
   x <- as.matrix(train_data[,1:50])
   y <- as.factor(train_data$y)
@@ -393,6 +409,10 @@ for(outer.fold in folds.outer){
   errors[i, c("RF")] <- model.mse.ave[i]
 }
 
+## best_hyperpameter gives 5
+
+# SVM
+
 phonemes_pc$y=as.numeric(factor(phonemes_pc$y))
 C_list<-c(0.001,0.01,0.1,1,10,100,1000,10e4)
 N<-length(C_list)
@@ -425,10 +445,14 @@ phonemes_pc$y = phonemes$y
 
 # GMM
 
-phonemes_gmm <- Mclust(phonemes_pc[,1:50])
-summary(phonemes_gmm)
+#phonemes_gmm <- Mclust(phonemes_pc[,1:50])
+#summary(phonemes_gmm)
 
-plot(phonemes_gmm, "BIC")
+#plot(phonemes_gmm, "BIC")
+
+# gives VVE
+
+## MclustDA
 
 CV <- rep(0,10)
 #Creating folds
@@ -445,28 +469,89 @@ phonemesMclustDA <- MclustDA(X.train, y.train)
 
 summary(phonemesMclustDA, newdata = X.test, newclass = y.test)
 
+## CV GMM with VVE
+
+phonemes_gmm_VVE <- MclustDA(phonemes_pc[,1:50], phonemes_pc$y, modelNames="VVE")
+cv <- cvMclustDA(phonemes_gmm_VVE)
+
+errors[, c("GMM")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
+
+## CV GMM with VVE and EDDA (LDA)
+
+phonemes_gmm_VVE_EDDA <- MclustDA(phonemes_pc[,1:50], phonemes_pc$y, modelType = "EDDA", modelNames="VVE")
+cv <- cvMclustDA(phonemes_gmm_VVE_EDDA)
+
+errors[, c("GMM_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
+
 # GAM
 
 phonemes_pc$y=as.numeric(factor(phonemes_pc$y))
+
+## reassign values to y from 0 to 4 to fit multinom condition on gam
+phonemes_pc$y[phonemes_pc$y==1] <- 0
+phonemes_pc$y[phonemes_pc$y==2] <- 1
+phonemes_pc$y[phonemes_pc$y==3] <- 2
+phonemes_pc$y[phonemes_pc$y==4] <- 3
+phonemes_pc$y[phonemes_pc$y==5] <- 4
+
+pb = txtProgressBar(min = 0, max = 10, initial = 0) 
 CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(phonemes_pc$y, k=10))
-train_data <- phonemes_pc[-fold[[1]], ]
-test_data <- phonemes_pc[fold[[1]], ]
+for(i in (1:10)){
+  setTxtProgressBar(pb,i)
+  train_data <- phonemes_pc[-fold[[1]], ]
+  test_data <- phonemes_pc[fold[[1]], ]
+  
+  X.train <- train_data[,1:51]
+  X.test <- test_data[,1:51]
+  
+  # fit <- gam(y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+  #            + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+  #            + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+  #            + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+  #            + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50)
+  #            , data = X.train, family = gaussian)
+  
+  fit <- gam(list(
+    y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+               + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+               + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+               + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+               + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
+    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
+    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
+    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50)
+    ),
+    data = X.train, family = multinom(K=4))
+  
+  #fit <- gam(list(y ~ s(PC1) + s(PC2), ~s(PC1) + s(PC2), ~s(PC1) + s(PC2), ~s(PC1) + s(PC2)),
+  #           data = X.train, family = multinom(K=4))
+  # 30% d'erreur avec ces formules
+  
+  pred <- predict(fit, newdata = X.test, type="response")
+  pc <- apply(pred,1,function(x) which(max(x)==x)[1])-1
+  mean(pc == X.test$y)
+  
+  CV[i]<-1 - mean(pc == X.test$y)
+  errors[i, c("GAM")] <- CV[i]
 
-X.train <- train_data[,1:51]
-X.test <- test_data[,1:51]
+}
 
-# fit <- gam(y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
-#            + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
-#            + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
-#            + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
-#            + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50)
-#            , data = X.train, family = gaussian)
+close(pb)
 
-fit <- gam(y ~ s(PC1) + s(PC2), data = X.train, family = gaussian)
-pred <- predict(fit, newdata = X.test)
-mean(pred == X.test$y)
 phonemes_pc$y = phonemes$y
 
 # Plot
