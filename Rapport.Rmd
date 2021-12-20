@@ -1,0 +1,69 @@
+---
+title: "Rapport TP 10 - Apprentissage à partir de trois jeux de données réelles"
+author: "Assila Yassine, Gabet Joseph, Sébastien Dam"
+date: "A21"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Ce rapport a pour but de présenter nos démarches pour construire des fonctions de prédiction les plus performantes possibles pour les trois jeux de données étudiés. Pour chacun d'entre eux, nous avons réalisé une analyse exploratoire pour avoir une première connaissance des données. Puis, nous avons utilisé les méthodes d'apprentissage vues en cours, avec dans certains cas l'utilisation de variables sélectionnées par différentes méthodes afin d'améliorer les résultats.
+
+# Phonemes
+
+## Analyse exploratoire
+
+Le jeu de données `Phonèmes` peut être traité comme un problème de classification avec cinq classes. Les fréquences de chaque phonème sont assez équitablement réparties. Nous représentons le log-periodogram sur la figure 1. On observe que les phonèmes `dcl` et `sh` sont assez différents mais pour les autres phonèmes, leur log-periodogram est assez similaire.
+
+![Log-periodogram](Log-periodogram.png){width=60%} 
+
+
+## Sélection de variables
+
+Au vu du grand nombre de variables, nous décidons d'appliquer des méthodes de sélection de variables. 
+Les variables étant les longueurs des log-periodograms, il ne serait pas pertinent d'utiliser des méthodes telles que les forward/backward subset selection ou de récupérer les variables les plus importantes mesurées par une forêt aléatoire. En effet, cela n'aurait pas de sens de sélectionner seulement certaines fréquences puis de réaliser une classification sur ces dernières. Cependant, nous pouvons chercher à réduire le nombre de variables tout en conservant le maximum d'information, en transformant notamment les variables. Nous décidons alors d'appliquer une Analyse en Composantes Principales (ACP). Nous obtenons la figure 2 montrant le pourcentage de variances expliquées selon les composantes principales : 
+
+![Pourcentage de variances expliquées en fonction des composantes principales](variance_PC.png){width=53%} 
+
+Ainsi, les 50 premières composantes principales expliquent environ 91.04% de la variance. Nous décidons donc de garder les 50 premières composantes principales. 
+
+## Entraînement des modèles
+
+Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso et Elastic Net, Bagging, Forêt Aléatoire (RF) et Séparateur à Vaste Marge (SVM). 
+
+Pour chaque modèle, nous réalisons une validation croisée à 10 plis. Pour certains classifieurs nécessitant de spécifier un hyperparamètre, nous utilisons une validation croisée imbriquée pour obtenir l'hyperparamètre optimal. 
+
+Nous résumons dans la Table 1 le(s) hyperparamètre(s) pour chaque modèle. Les hyperparamètres pour Ridge, Lasso et Elastic Net n'ont pas nécessité d'être déterminés avec une validation croisée imbriquée mais directement avec la fonction `cv.glmnet`. Ainsi, nous écrivons la moyenne des hyperparamètres obtenus lors des validations croisées à 10 plis. Quant au SVM, son hyperparamètre a été obtenu en faisant une validation croisée parmi les valeurs de C suivantes : 0.001,0.01,0.1,1,10,100,1000,$10^4$. 
+
+|     **Modèle**     |   KNN  | Ridge | Lasso | Elastic Net | RF | SVM |
+|--------------|:------:|:-----:|:-------:|:-------------:|:----:|:-----:|
+| **Hyperparamètre** | K = 22 | $\bar{\lambda}$ = 0.033 | $\bar{\lambda}$ = 0.00072 | $\bar{\lambda}$ = 0.00663, $\bar{\alpha}$ = 1 |  $\lambda$ = 20  |  C = 1   |
+Table: Valeur des hyperparamètres optimaux pour chaque modèle
+
+## Résultats
+
+Après avoir testé tous les modèles, nous obtenons la figure 3 résumant le pourcentage d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement performants avec des écart-types relativement faibles. 
+
+![Résultats des modèles pour le dataset `Phonèmes`](resultats_phonemes.png)
+
+Ainsi, en conclusion, nous choisissons le **insert meilleur modèle**. 
+
+# Letter recognition
+
+## Analyse exploratoire
+
+Letter recognition est aussi un problème de classification puisqu'il s'agit de prédire une lettre parmi les lettres de l'alphabet. Les fréquences des lettres sont assez bien réparties. 
+
+# Bike rental
+
+## Analyse exploratoire
+
+Bike rental est cette fois un problème de régression dans lequel il faut prédire le nombre de locations de vélos sur l'année 2011 selon les conditions environnementales et saisonnières. Il y a à la fois des variables qualitatives et quantitatives. Tout d'abord, nous observons que la variable `yr` vaut toujours 0 peut importe l'observation, donc toutes les données ont été recueillies sur l'année 2011 et nous décidons alors d'enlever cette variable. La variable `instant` correspond simplement aux index relevés. Il se peut que les données d'autres années ne soient pas indexées de la même manière, c'est pourquoi nous décidons de la retirer également. 
+
+Commentaires sur dteday, et sur la normalité des résidus.
