@@ -19,6 +19,19 @@ missing_val<-data.frame(apply(phonemes,2,function(x){sum(is.na(x))}))
 names(missing_val)[1]='missing_val'
 missing_val
 
+# Log-peridiogram
+
+y = factor(phonemes[,257])      #membership vector
+x = as.matrix(phonemes[,1:256]) #log-periodogram matrix
+mode(x)="numeric"
+dim(x)
+
+#Visualize raw data
+col=as.numeric(y)
+matplot(1:256,t(x[1:20,]),col=col[1:20],type="l",
+        xlab="Frequency",ylab="Log-periodogram", ylim = range(-4.5,5))
+legend("topright",legend=levels(y),lty=1,col=1:5)
+
 # ACP
 
 pca<-princomp(phonemes[, 1:256])
@@ -129,7 +142,7 @@ bike_per_season <- bike %>%
 
 ggplot(bike_per_season,aes(x=season,y=cnt))+theme_bw()+geom_col()+
   labs(x='Mois',y='Locations',title='Comptage selon les saisons par mois')+
-  scale_x_discrete(limits= c("Printemps", "Ete", "Automne", "Hiver"))+ 
+  scale_x_discrete(labels= c("Printemps", "Ete", "Automne", "Hiver"))+ 
   geom_bar(stat="identity", fill = "#FF6666")
 # Plot selon les jours par mois
 ggplot(bike,aes(x=mnth,y=cnt,fill=weekday))+theme_bw()+geom_col()+
@@ -189,7 +202,7 @@ panel.cor <- function(x, y){
   text(0.5, 0.5, txt, cex = 0.8)
 }
 # Create the plots
-pairs(bike[, 8:11], lower.panel = panel.cor)
+pairs(bike[, 8:14], lower.panel = panel.cor)
 
 # C'est clairement atemp car R[temp, atemp] = 1, enlevons là de notre jeu de données
 
