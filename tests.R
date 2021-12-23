@@ -55,8 +55,8 @@ data_class.test <- data_class[-train,]
 missing_val<-data.frame(apply(letter,2,function(x){sum(is.na(x))}))
 names(missing_val)[1]='missing_val'
 
-errors <-  matrix(0, 10, 16)
-colnames(errors) <- c("KNN", "LDA", "QDA", "FDA", "NB", "RL", "Ridge", "Lasso", "ElasticNet", "TREE", "pTREE", "bag", "RF", "mtry", "SVM", "nn")
+errors <-  matrix(0, 10, 19)
+colnames(errors) <- c("KNN", "LDA", "QDA", "FDA", "NB", "RL", "Ridge", "Lasso", "ElasticNet", "TREE", "pTREE", "bag", "RF", "mtry", "SVM", "GMM", "GMM_EDDA", "GAM", "nn")
 
 
 
@@ -322,7 +322,7 @@ for(i in (1:10)){
   x <- as.matrix(train_data[,2:17])
   y <- as.factor(train_data$Y)
   
-  X.train <- train_data[,2:16]
+  X.train <- train_data[,2:17]
   y.train <- train_data[,1]
   X.test <- as.matrix(test_data[,2:17])
   y.test <- test_data[,1]
@@ -389,9 +389,11 @@ for(i in (1:10)){
 ### RF
 
 CV <- rep(0,10)
+pb = txtProgressBar(min = 0, max = 10, initial = 0) 
 #Creating folds
 fold <- unname(createFolds(data_class$Y, k=10))
 for(i in (1:10)){
+  setTxtProgressBar(pb,i)
   #Training data
   train_data <- data_class[-fold[[i]], ]
   #Creating test data 
@@ -401,11 +403,20 @@ for(i in (1:10)){
   
   RF.class <- randomForest(as.factor(Y) ~., data=data_class, subset=train, mtry=p)
   pred.RF <- predict(RF.class, newdata=test_data, type="response")
-  perf.b <- table(test_data$Y, pred.RF)
+  perf.RF <- table(test_data$Y, pred.RF)
   
   CV[i]<-1-sum(diag(perf.RF))/nrow(test_data) 
   errors[i, c("RF")] <- CV[i]
 }
+close(pb)
+
+# pour l'analyse explo
+my_mtry <- sqrt(p)
+RF.class <- randomForest(as.factor(Y) ~., data=data_class, subset=train, mtry=p, importance = TRUE)
+pred.RF <- predict(RF.class, newdata=data_class.test, type="response")
+perf.RF <- table(data_class.test$Y, pred.RF)
+varImpPlot(RF.class)
+
 
 ### find best param mtry
 
@@ -418,7 +429,7 @@ for(i in (1:10)){
   #Creating test data 
   test_data <- data_class[fold[[i]], ]
   
-  bestmtry <- tuneRF(data_class.train[,2:16], data_class.train$Y, stepFactor=1.5, improve=1e-5, ntree=500)
+  bestmtry <- tuneRF(data_class.train[,2:17], data_class.train$Y, stepFactor=1.5, improve=1e-5, ntree=500)
   
   RF.class <- randomForest(as.factor(Y) ~., data=data_class, subset=train, mtry=bestmtry)
   pred.RF <- predict(RF.class, newdata=test_data, type="response")
@@ -431,17 +442,21 @@ for(i in (1:10)){
 
 ############### GMM ###############
 
-#x = c("X10", "X1", "X2", "X15", "X16", "X11", "X8")
-
 class <- data_class$Y
-X <- data_class[,2:16]
+X <- data_class[,2:17]
+
+data_class_gmm <- MclustDA(X, class)
+cv <- cvMclustDA(data_class_gmm)
+errors[, c("GMM")] <- 1 - sum(diag(table(cv$classification, factor(data_class$Y))))/nrow(data_class)
+
+#x = c("X10", "X1", "X2", "X15", "X16", "X11", "X8")
 
 # general covariance structure selected by BIC
 letterMclustDA <- MclustDA(X, class, modelType = "EDDA")
 summary(letterMclustDA)#, parameters = TRUE)
-
 cv <- cvMclustDA(letterMclustDA, nfold = 10)
 cv$ce
+errors[, c("GMM_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(data_class$Y))))/nrow(data_class)
 
 #plot(letterMclustDA)
 
@@ -477,7 +492,45 @@ for(i in (1:10)){
 }
 
 
-data_class$Y = data_class$Y
+data_class$Y = letter$Y
+
+# GAM
+
+data_class$Y=as.numeric(factor(data_class$Y))
+
+## reassign values to y from 0 to 4 to fit multinom condition on gam
+data_class$Y = data_class$Y -1
+
+pb = txtProgressBar(min = 0, max = 10, initial = 0) 
+CV <- rep(0,10)
+#Creating folds
+fold <- unname(createFolds(data_class$Y, k=10))
+for(i in (1:10)){
+  setTxtProgressBar(pb,i)
+  train_data <- data_class[-fold[[1]], ]
+  test_data <- data_class[fold[[1]], ]
+  
+  X.train <- train_data[,1:17]
+  X.test <- test_data[,1:17]
+  
+
+  fit <- gam(Y ~ s(X1) + s(X2) + s(X3) + s(X4) + s(X5) + s(X6) + s(X7) + s(X8) + s(X9) 
+             + s(X10) + s(X11) + s(X12) + s(X13) + s(X14) + s(X15) + s(X16)
+             , data = X.train, family = gaussian)
+  
+  pred <- predict(fit, newdata = X.test, type="response")
+  pc <- apply(pred,1,function(x) which(max(x)==x)[1])-1
+  mean(pc == X.test$Y)
+  
+  CV[i]<-1 - mean(pc == X.test$Y)
+  errors[i, c("GAM")] <- CV[i]
+  
+}
+
+close(pb)
+
+data_class$Y = letter$Y
+
 
 
 ####################### NN ####################
