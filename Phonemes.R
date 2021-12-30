@@ -16,6 +16,8 @@ library(randomForest)
 library(kernlab)
 library(mclust) # GMM
 library(mgcv) # GAM
+library(klaR) # RDA
+library(rpart) # Tree
 
 setwd("C:/Users/sebas/Desktop/Supérieur/Branche/GI05/SY19/TP/TP 10")
 
@@ -31,8 +33,8 @@ phonemes_pc$y = phonemes$y
 y = factor(phonemes_pc$y)
 col=as.numeric(factor(y))
 
-errors <-  matrix(0, 10, 14)
-colnames(errors) <- c("NB", "Knn", "LDA", "QDA", "FDA", "RL", "Ridge", "Lasso", "ElasticNet", "Bagging", "RF", "SVM", "GMM", "GMM_EDDA", "GAM")
+errors <-  matrix(0, 10, 20)
+colnames(errors) <- c("NB", "Knn", "LDA", "QDA", "FDA", "RDA", "RL", "Ridge", "Lasso", "ElasticNet", "DT", "DT_pruned","Bagging", "RF", "SVM-rbf", "SVM-poly", "SVM-linear", "MDA", "MDA_EDDA", "GAM")
 
 # K Fold cross validation on Naive Bayes
 
@@ -280,7 +282,7 @@ for(i in (1:10)){
   errors[i, c("Lasso")] <- CV[i]
 }
 
-## mean of best.lambda.lasso.CV gives 0.0007214317
+## mean of best.lambda.lasso.CV gives 0.0008617423
 
 # K Fold cross validation on Elastic Net
 
@@ -411,9 +413,10 @@ for(outer.fold in folds.outer){
 
 ## best_hyperpameter gives 5
 
-# SVM
+# SVM-rbf
 
 phonemes_pc$y=as.numeric(factor(phonemes_pc$y))
+
 C_list<-c(0.001,0.01,0.1,1,10,100,1000,10e4)
 N<-length(C_list)
 CV<-rep(0,N)
@@ -438,7 +441,66 @@ for(i in (1:10)){
   pred.phonemes_pc=predict(svm.phonemes_pc,test_data[1:50])
   
   CV[i]<-1 - sum(diag(table(test_data$y, pred.phonemes_pc)))/nrow(test_data)
-  errors[i, c("SVM")] <- CV[i]
+  errors[i, c("SVM-rbf")] <- CV[i]
+}
+
+# SVM-poly
+
+C_list<-c(0.001,0.01,0.1,1,10,100,1000,10e4)
+N<-length(C_list)
+CV<-rep(0,N)
+for(i in 1:N){
+  CV[i]<-cross(
+    ksvm(as.factor(y)~.,data=phonemes_pc,type="C-svc",kernel="polydot",C=C_list[i],cross=10)
+  )
+}
+
+plot(C_list, CV, pch="o", type="b", log="x", xlab="C", ylab="Taux d'erreur", main="Taux d'erreur en fonction de C")
+
+CV <- rep(0,10)
+#Creating folds
+fold <- unname(createFolds(phonemes_pc$y, k=10))
+for(i in (1:10)){
+  #Training data
+  train_data <- phonemes_pc[-fold[[i]], ]
+  #Creating test data 
+  test_data <- phonemes_pc[fold[[i]], ]
+  
+  svm.phonemes_pc <-ksvm(as.factor(y)~ .,data=train_data,type="C-svc",kernel="polydot",C=0.01)
+  pred.phonemes_pc=predict(svm.phonemes_pc,test_data[1:50])
+  
+  CV[i]<-1 - sum(diag(table(test_data$y, pred.phonemes_pc)))/nrow(test_data)
+  errors[i, c("SVM-poly")] <- CV[i]
+}
+
+# SVM-linear
+
+phonemes_pc$y=as.numeric(factor(phonemes_pc$y))
+C_list<-c(0.001,0.01,0.1,1,10,100,1000,10e4)
+N<-length(C_list)
+CV<-rep(0,N)
+for(i in 1:N){
+  CV[i]<-cross(
+    ksvm(as.factor(y)~.,data=phonemes_pc,type="C-svc",kernel="vanilladot",C=C_list[i],cross=10)
+  )
+}
+
+plot(C_list, CV, pch="o", type="b", log="x", xlab="C", ylab="Taux d'erreur", main="Taux d'erreur en fonction de C")
+
+CV <- rep(0,10)
+#Creating folds
+fold <- unname(createFolds(phonemes_pc$y, k=10))
+for(i in (1:10)){
+  #Training data
+  train_data <- phonemes_pc[-fold[[i]], ]
+  #Creating test data 
+  test_data <- phonemes_pc[fold[[i]], ]
+  
+  svm.phonemes_pc <-ksvm(as.factor(y)~ .,data=train_data,type="C-svc",kernel="vanilladot",C=0.01)
+  pred.phonemes_pc=predict(svm.phonemes_pc,test_data[1:50])
+  
+  CV[i]<-1 - sum(diag(table(test_data$y, pred.phonemes_pc)))/nrow(test_data)
+  errors[i, c("SVM-linear")] <- CV[i]
 }
 
 phonemes_pc$y = phonemes$y
@@ -465,23 +527,135 @@ y.train <- train_data[, 51]
 X.test <- as.matrix(test_data[,1:50])
 y.test <- test_data[, 51]
 
-phonemesMclustDA <- MclustDA(X.train, y.train)
+# phonemesMclustDA <- MclustDA(X.train, y.train)
 
-summary(phonemesMclustDA, newdata = X.test, newclass = y.test)
+# summary(phonemesMclustDA, newdata = X.test, newclass = y.test)
 
-## CV GMM with VVE
+## CV MDA with VVE
 
 phonemes_gmm_VVE <- MclustDA(phonemes_pc[,1:50], phonemes_pc$y, modelNames="VVE")
 cv <- cvMclustDA(phonemes_gmm_VVE)
 
-errors[, c("GMM")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
+errors[, c("MDA")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
 
-## CV GMM with VVE and EDDA (LDA)
+## CV MDA with VVE and EDDA (LDA)
 
 phonemes_gmm_VVE_EDDA <- MclustDA(phonemes_pc[,1:50], phonemes_pc$y, modelType = "EDDA", modelNames="VVE")
 cv <- cvMclustDA(phonemes_gmm_VVE_EDDA)
 
-errors[, c("GMM_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
+errors[, c("MDA_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(phonemes$y))))/nrow(phonemes_pc)
+
+# KFold cross validation on RDA
+# https://daviddalpiaz.github.io/r4sl/regularized-discriminant-analysis.html
+
+best.lambda.rda.CV <- rep(0,10)
+best.gamma.rda.CV <- rep(0,10)
+CV <- rep(0,10)
+#Creating folds
+fold <- unname(createFolds(phonemes_pc$y, k=10))
+for(i in (1:10)){
+  print(i)
+  #Training data
+  train_data <- phonemes_pc[-fold[[i]], ]
+  #Creating test data 
+  test_data <- phonemes_pc[fold[[i]], ]
+  
+  # Grid search
+  cv_10_grid <- caret::trainControl(method = "cv", number=10)
+  fit_rda_grid = caret::train(y ~ ., data = train_data, method = "rda", trControl = cv_10_grid)
+  
+  # Random search
+  cv_10_random <- trainControl(method = "cv", number=10, search="random")
+  fit_rda_random = train(y ~ ., data = train_data, method = "rda", trControl = cv_10_random, tuneLength = 9)
+  
+  if (max(fit_rda_grid$results$Accuracy) > max(fit_rda_random$results$Accuracy)) {
+    best.gamma.rda = fit_rda_grid$bestTune[1,1]
+    best.lambda.rda = fit_rda_grid$bestTune[1,2]
+    best.gamma.rda.CV[i] = fit_rda_grid$bestTune[1,1]
+    best.lambda.rda.CV[i] = fit_rda_grid$bestTune[1,2]
+  } else {
+    best.gamma.rda = fit_rda_random$bestTune[1,1]
+    best.lambda.rda = fit_rda_random$bestTune[1,2]
+    best.gamma.rda.CV[i] = fit_rda_random$bestTune[1,1]
+    best.lambda.rda.CV[i] = fit_rda_random$bestTune[1,2]
+  }
+  
+  rda.phonemes_pc <-rda(y~ .,data=train_data,lambda=best.lambda.rda, gamma=best.gamma.rda)
+  pred.phonemes_pc=predict(rda.phonemes_pc,test_data[1:50])$class
+  
+  CV[i]<-1 - sum(diag(table(test_data$y, pred.phonemes_pc)))/nrow(test_data)
+  errors[i, c("RDA")] <- CV[i]
+}
+
+# KFold cross validation on Decision Tree
+
+n <- nrow(phonemes_pc)
+ntrain <- round(2*n/3)
+ntest <- n - ntrain
+idx.train <- sample(n, ntrain)
+         
+phonemes_pc$y <- as.factor(phonemes_pc$y)           
+DT.phonemes_pc <- rpart(as.factor(y) ~ ., data=phonemes_pc, 
+                        subset = idx.train, method="class",
+                        control = rpart.control(xval = 10, minbucket = 10,cp=0.00))
+
+library(rpart.plot)
+rpart.plot(DT.phonemes_pc, box.palette="RdBu", shadow.col="gray", fallen.leaves=FALSE)
+
+pred.phonemes_pc <- predict(DT.phonemes_pc, newdata=phonemes_pc[-idx.train,], type='class')
+y.test <- phonemes[-idx.train, "y"]
+
+err.tree <- 1 - sum(diag(table(y.test, pred.phonemes_pc)))/ntest
+errors[, c("DT")] <- err.tree
+
+# Pruned Tree
+
+plotcp(DT.phonemes_pc,minline=TRUE)
+
+# On choisit la valeur CP (ou α) avec un erreur de validation croisée minimale
+i.min<-which.min(DT.phonemes_pc$cptable[,4])
+cp.opt1<-DT.phonemes_pc$cptable[i.min,1]
+
+pruned_tree <- prune(DT.phonemes_pc, cp=cp.opt1)
+rpart.plot(pruned_tree, box.palette="RdBu", shadow.col="gray")
+
+pred.phonemes_pc <- predict(pruned_tree, newdata=phonemes_pc[-idx.train,], type='class')
+
+err.pruned <- 1 - sum(diag(table(y.test, pred.phonemes_pc)))/ntest
+errors[, c("DT_pruned")] <- err.pruned
+
+phonemes_pc$y <- phonemes$y  
+
+# Deep NN
+
+# library(dplyr)
+# 
+# n <- nrow(phonemes_pc)
+# ntrain <- round(2*n/3)
+# ntest <- n - ntrain
+# idx.train <- sample(n, ntrain)
+# 
+# X.train <- phonemes_pc[idx.train,]
+# X.test <- phonemes_pc[-idx.train,]
+# 
+# y.train <- model.matrix( ~ -1 + y, data=X.train)
+# y.test <-  model.matrix( ~ -1 + y, data=X.test) 
+# 
+# 
+# library(keras)
+# library(reticulate)
+# 
+# model <- keras_model_sequential()
+# model %>% layer_dense(units = 30, activation = 'relu', input_shape = 1) %>%
+#   layer_dense(units = 20, activation = 'relu') %>%
+#   layer_dense(units = 5, activation = 'relu') %>%
+#   layer_dense(units = 1, activation = 'relu')
+# model %>% compile(loss = 'categorical_crossentropy', optimizer = optimizer_rmsprop())
+# history <- model %>% fit(X.train[, 1:50], y.train,
+#                          epochs = 50, batch_size = 30)
+# plot(history)
+# pred <- model %>% evaluate(as.matrix(X.test[, 1:50]), y.test)
+# errors[i, c("Deep NN")] <- 1 - pred[2]
 
 # GAM
 
@@ -494,63 +668,49 @@ phonemes_pc$y[phonemes_pc$y==3] <- 2
 phonemes_pc$y[phonemes_pc$y==4] <- 3
 phonemes_pc$y[phonemes_pc$y==5] <- 4
 
-pb = txtProgressBar(min = 0, max = 10, initial = 0) 
 CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(phonemes_pc$y, k=10))
 for(i in (1:10)){
-  setTxtProgressBar(pb,i)
-  train_data <- phonemes_pc[-fold[[1]], ]
-  test_data <- phonemes_pc[fold[[1]], ]
-  
+  print(i)
+  train_data <- phonemes_pc[-fold[[i]], ]
+  test_data <- phonemes_pc[fold[[i]], ]
+
   X.train <- train_data[,1:51]
   X.test <- test_data[,1:51]
   
-  # fit <- gam(y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
+  # fit <- gam(y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10)
   #            + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
   #            + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
   #            + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
   #            + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50)
   #            , data = X.train, family = gaussian)
-  
+
   fit <- gam(list(
-    y ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
-               + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
-               + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
-               + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
-               + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
-    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
-    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
-    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
-    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
-    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
-    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
-    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
-    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
-    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
-    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
-    ~ s(PC1) + s(PC2) + s(PC3) + s(PC4) + s(PC5) + s(PC6) + s(PC7) + s(PC8) + s(PC9) + s(PC10) 
-    + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
-    + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
-    + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
-    + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50)
+    y ~ s(PC1) + s(PC2) + s(PC3),
+               # + s(PC7) + s(PC8) + s(PC9) + s(PC10)
+               # + s(PC11) + s(PC12) + s(PC13) + s(PC14) + s(PC15) + s(PC16) + s(PC17) + s(PC18) + s(PC19) + s(PC20)
+               # + s(PC21) + s(PC22) + s(PC23) + s(PC24) + s(PC25) + s(PC26) + s(PC27) + s(PC28) + s(PC29) + s(PC30)
+               # + s(PC31) + s(PC32) + s(PC33) + s(PC34) + s(PC35) + s(PC36) + s(PC37) + s(PC38) + s(PC39) + s(PC40)
+               # + s(PC41) + s(PC42) + s(PC43) + s(PC44) + s(PC45) + s(PC46) + s(PC47) + s(PC48) + s(PC49) + s(PC50),
+    ~ s(PC1) + s(PC2) + s(PC3),
+    ~ s(PC1) + s(PC2) + s(PC3),
+    ~ s(PC1) + s(PC2) + s(PC3)
     ),
     data = X.train, family = multinom(K=4))
-  
+
   #fit <- gam(list(y ~ s(PC1) + s(PC2), ~s(PC1) + s(PC2), ~s(PC1) + s(PC2), ~s(PC1) + s(PC2)),
   #           data = X.train, family = multinom(K=4))
   # 30% d'erreur avec ces formules
-  
+
   pred <- predict(fit, newdata = X.test, type="response")
   pc <- apply(pred,1,function(x) which(max(x)==x)[1])-1
   mean(pc == X.test$y)
-  
+
   CV[i]<-1 - mean(pc == X.test$y)
   errors[i, c("GAM")] <- CV[i]
 
 }
-
-close(pb)
 
 phonemes_pc$y = phonemes$y
 
@@ -578,6 +738,6 @@ plot.cv.error <- function(data, x.title="x"){
     theme(plot.title = element_text(hjust = 0.5),axis.text.x=element_text(angle=60, hjust=1))
 }
 
-plot.cv.error(errors, c("Naive Bayes", "KNN", "LDA", "QDA", "FDA", "RL", "Ridge", "Lasso", "ElasticNet", "Bagging", "RF", "SVM"))
+plot.cv.error(errors, c("NB", "Knn", "LDA", "QDA", "FDA", "RDA", "RL", "Ridge", "Lasso", "ElasticNet", "DT", "DT_pruned","Bagging", "RF", "SVM-rbf", "SVM-poly", "SVM-linear", "MDA", "MDA_EDDA", "GAM"))
 
 #boxplot(errors,main="Boîtes à moustache des erreurs selon le prédicteur", xlab='Prédicteurs', ylab="Pourcentage d'erreur")
