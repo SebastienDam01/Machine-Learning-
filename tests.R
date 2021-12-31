@@ -312,7 +312,7 @@ for(i in (1:10)){
   test_data <- data_class[fold[[i]], ]
   
   train_control = trainControl(method = "cv", number = 10)
-  elastic_net_cv <- train(Y ~ ., data = train_data, method = "glmnet", trControl = train_control )
+  elastic_net_cv <- train(Y ~ ., data = train_data, method = "glmnet", trControl = train_control)
   best.alpha <- elastic_net_cv$bestTune[1,1]
   best.lambda <- elastic_net_cv$bestTune[1,2]
   
@@ -449,7 +449,7 @@ data_class_gmm <- MclustDA(X, class)
 cv <- cvMclustDA(data_class_gmm)
 errors[, c("GMM")] <- 1 - sum(diag(table(cv$classification, factor(data_class$Y))))/nrow(data_class)
 
-#x = c("X10", "X1", "X2", "X15", "X16", "X11", "X8")
+#x = c("X10", "X1", "X2", "X15", "X16", "X14", "X11", "X8", "X7", "X6" ,"X5")
 
 # general covariance structure selected by BIC
 letterMclustDA <- MclustDA(X, class, modelType = "EDDA")
@@ -462,34 +462,48 @@ errors[, c("GMM_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(data_cla
 
 ############### SVM ###############
 
+#x = c("Y", "X10", "X1", "X2", "X15", "X16", "X14", "X11", "X8", "X7", "X6" ,"X5", "X4", "X13", "X12")
+
 data_class$Y=as.numeric(factor(data_class$Y))
-C_list<-c(0.001,0.01,0.1,1,10,100,1000,10e4)
+
+# kernel = c("rbfdot", "tanhdot", "polydot", "laplacedot")
+
+C_list<-c(0.001,0.01,0.1,1,10,100,1000)
 N<-length(C_list)
 CV<-rep(0,N)
+pb = txtProgressBar(min = 0, max = N, initial = 0) 
 for(i in 1:N){
+  setTxtProgressBar(pb,i)
   CV[i]<-cross(
-    ksvm(as.factor(Y)~.,data=data_class,type="C-svc",kernel="rbfdot",C=C_list[i],cross=10)
+    ksvm(as.factor(Y)~.,data=data_class,type="C-svc",kernel="polydot",C=C_list[i],cross=10)
   )
+  print(CV[i])
 }
-
 plot(C_list, CV, pch="o", type="b", log="x", xlab="C", ylab="Taux d'erreur", main="Taux d'erreur en fonction de C")
+close(pb)
 
+# best_C = c("10", "0.01", "1", "100")
 
+pb = txtProgressBar(min = 0, max = 10, initial = 0) 
 CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(data_class$Y, k=10))
 for(i in (1:10)){
+  setTxtProgressBar(pb,i)
   #Training data
   train_data <- data_class[-fold[[i]], ]
   #Creating test data 
   test_data <- data_class[fold[[i]], ]
   
-  pred.svmc <- ksvm(as.factor(Y)~ .,data=train_data,type="C-svc",kernel="rbfdot",C=1)
-  perf.svmc <- predict(pred.svmc, test_data)
+  svmc <- ksvm(as.factor(Y) ~ ., type = "C-svc", data=train_data, kernel="laplacedot",C=100)
+  ypred <- predict(svmc, test_data[2:17])
+  perf.svmc <- table(test_data$Y, ypred)
   
-  CV[i]<-1-sum(diag(perf.svmc))/nrow(test_data) 
+  CV[i]<-1-sum(diag(perf.svmc))/nrow(test_data)
   errors[i, c("SVM")] <- CV[i]
 }
+
+close(pb)
 
 
 data_class$Y = letter$Y
@@ -579,3 +593,5 @@ plot.cv.error <- function(data, x.title="x"){
 }
 
 plot.cv.error(errors, colnames(errors) )
+
+colMeans(errors)
