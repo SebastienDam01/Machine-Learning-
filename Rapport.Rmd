@@ -3,8 +3,8 @@ title: "Rapport TP 10 - Apprentissage à partir de trois jeux de données réell
 author: "Assila Yassine, Gabet Joseph, Sébastien Dam"
 date: "A21"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -37,6 +37,7 @@ En premier lieux on regarde si il existe de possible correlation entre les préd
 
 ![Correlation X1 à X8](corre1.png){width=30%} 
 ![Correlation X9 à X16](corre2.png){width=30%} 
+
 Il ne semble pas y avoir de liens évidents qui nous permettrais d'éliminer certaines variables.
 
 ## Sélection de variables
@@ -51,6 +52,7 @@ L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de 
 Une autrre idée est de sélectionner les variables qui ont la plus grande importance dans le modèle de la randomForest.
 
 ![Importances des variables, forêt aléaroire](rf_letter.png){width=53%} 
+
 Cette idée est notament renforcé par le fait que les modèle basé sur la forête aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur).
 
 Enfin nous testons les modèle de sélection de variable ridge et lasso. Mais ceux-ci ne ^résentent pas de très bonne performance (relativement aux autres méthodes testers). Ce qui conforte l'idée qu'une sélection de variable ne semble pas être ici très pertinente.
@@ -59,17 +61,21 @@ Enfin nous testons les modèle de sélection de variable ridge et lasso. Mais ce
 
 Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, mélange aléatoire gaussien (GMM), mélange aléatoire gaussien avec analyse discriminante (GMM_EDDA), séparateur à Vaste Marge (KSVM) avec plusieurs noyaux, résaux de neurone. 
 
+Ici Bagging prend comme paramètre mtry = 16 (le nombre de prédicteurs), la forête aléatoire prend comme paramètre mtry = 4 (racine carré du nombre de prédicteurs). Enfin grâce à la fonction tuneRF on recherche le paramètre mtry optimale.
+
+```{r eval=FALSE}
+tuneRF(data_class.train[,2:17], data_class.train$Y, stepFactor=1.5, improve=1e-5, ntree=500)
+```
+
 Ces algorithmes sont dans un premiers temps tester avec l'ensssemble des prédicteurs. Cette première étude nous permet de voir si des modèle se distingue déjà fortement des autres, ce qui nous permettra une étude aprofondie. 
 
 Pour chaque modèle, nous réalisons une validation croisée à 10 plis. Pour certains classifieurs nécessitant de spécifier un hyperparamètre, nous utilisons une validation croisée imbriquée pour obtenir l'hyperparamètre optimal. 
 
 
-|     **Modèle**     |   KNN  | Ridge | Lasso | Elastic Net | RF | SVM |
-|--------------|:------:|:-----:|:-------:|:-------------:|:----:|:-----:|
-| **Hyperparamètre** | K = 22 | $\bar{\lambda}$ = 0.033 | $\bar{\lambda}$ = 0.00072 | $\bar{\lambda}$ = 0.00663, $\bar{\alpha}$ = 1 |  $\lambda$ = 20  |  C = 1   |
+|     **Modèle**     |   KNN  | Ridge | Lasso | RF mtry |
+|--------------|:------:|:-----:|:-----:|:-----:|
+| **Hyperparamètre** | K = 1 | $\bar{\lambda}$ = 0.008674308 | $\bar{\lambda}$ = 8.615844e-05 | mtry = 2.4 (en moyenne) |
 Table: Valeur des hyperparamètres optimaux pour chaque modèle
-
-### packages
 
 ### KSVM
 
@@ -104,13 +110,15 @@ Enfin puisque le modèle de séparateur à vaste marge se distingue des autres p
 Après avoir testé tous les modèles, nous obtenons la figure ci-dessous résumant le taux d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement plutôt performants avec des écart-types inégaux mais relativement faibles. 
 En effet étant donné qu'il y a 26 classe, le taux d'erreur d'une classification aléatoire est de 25/26 et ici, le pire modèle à un taux d'erreur inferieur à 50%.
 
-![Résultats des modèles pour le dataset `Phonèmes`](resultats_phonemes.png)
+![Résultats des modèles pour le dataset `letter`](letter_all.png)
 
-|     **Modèle**     | LDA | QDA | FDA | NB | KNN | Ridge | Lasso | TREE | pTREE |  mtry | SVM RBF | SVM Laplace |
-|--------------|:------:|:-----:|:-------:|:-------------:|:----:|:-----:|:-----:|
-| **Taux d'erreur** | K = 22 | $\bar{\lambda}$ = 0.033 | $\bar{\lambda}$ = 0.00072 | $\bar{\lambda}$ = 0.00663, $\bar{\alpha}$ = 1 |  $\lambda$ = 20  |  C = 10   | C = 100 |
+|     **Modèle**     | LDA | QDA | FDA | NB | KNN | Ridge | Lasso | TREE | pTREE | Bagging | RF |  mtry | SVM RBF | SVM Laplace | GMM | GMM_EDDA | nn |
+|--------------|:------:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| **Taux d'erreur** | 0.29688274 | 0.29209576 | 0.29790361 | 0.35858332 |  0.07030073 |  0.27799749   | 0.22360204 | 0.52831371 | 0.52831371 | 0.02599946 | 0.02550019 | 0.02549945 | 0.04550196 | 0.04550196 | 0.07610000 | 0.12000000 | 0.40479464 |
 Table: Erreur moyenne de la validation croisé pour chaque modèle
 
-Les modèles basé sur les separateurs à vste marge, précédé par les modèle de forête aléatoie semble particulièrement performant (moins de 5% de taux d'erreurs). De plus ces modèles sont ceux qui présentes les variuances les plus faible. Enfin au vue de la grande différence des taux d'erreur observé suivant ces modèle, ce critère semble suffisament pertinent pour distingué les modèles.
+Les pires modèles sont l'arbre et l'arbre élagué (qui en fait ici est toujours le même arbre). Ensuite le modèle avec le moins bon taux d'erreur est le résaux de neurones. Cela n'est pas surprenant car un résaux de neurone performe une transformation de l'éspace des prédicteurs. Or ici, les prédicteurs sont relativement peu nombreux et représente déjà une tranformation des inforations initiales (les images de lettres).
 
-Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 6**. 
+A contrario, les modèles basé sur les separateurs à vste marge, précédé par les modèle de forête aléatoie semble particulièrement performant (moins de 5% de taux d'erreurs). De plus ces modèles sont ceux qui présentes les variuances les plus faible. Enfin au vue de la grande différence des taux d'erreur observé suivant ces modèle, ce critère semble suffisament pertinent pour distingué les modèles.
+
+Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 2**. 

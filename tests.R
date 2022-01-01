@@ -421,6 +421,7 @@ varImpPlot(RF.class)
 ### find best param mtry
 
 CV <- rep(0,10)
+bestmtry.CV <- rep(0,10)
 #Creating folds
 fold <- unname(createFolds(data_class$Y, k=10))
 for(i in (1:10)){
@@ -429,9 +430,9 @@ for(i in (1:10)){
   #Creating test data 
   test_data <- data_class[fold[[i]], ]
   
-  bestmtry <- tuneRF(data_class.train[,2:17], data_class.train$Y, stepFactor=1.5, improve=1e-5, ntree=500)
+  bestmtry.CV[i] <- tuneRF(data_class.train[,2:17], as.factor(data_class.train$Y), stepFactor=1.5, improve=1e-5, ntree=500)
   
-  RF.class <- randomForest(as.factor(Y) ~., data=data_class, subset=train, mtry=bestmtry)
+  RF.class <- randomForest(as.factor(Y) ~., data=data_class, subset=train, mtry=bestmtry.CV[i])
   pred.RF <- predict(RF.class, newdata=test_data, type="response")
   perf.RF <- table(test_data$Y, pred.RF)
   
