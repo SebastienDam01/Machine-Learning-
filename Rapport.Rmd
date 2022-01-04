@@ -21,104 +21,87 @@ Letter recognition est aussi un problème de classification puisqu'il s'agit de 
 
 ### Analyse des données
 
-* table classique
-* pas de dimension temporelle *connue*
+En faisant une analyse rapide du jeu de données, nous obtenons les caractéristiques :
+
+* Pas de dimension temporelle *connue*
 * Nombre d’observations : 10 000
-* Nombre de variables : 16 prédicteurs + 1 variables à prédire
-* variables connues : X1 à X16
-* variable à prédire : y
-* aucune Valeurs manquantes
-* variables continues : X1 à X16
-* variables discrètes : y dans [1;26]
+* Nombre de variables : 16 prédicteurs + 1 variable à prédire
+* Variables connues : X1 à X16
+* Variable à prédire : y
+* Aucune valeur manquante
+* Variables continues : X1 à X16
+* Variable discrète : y $\in$ [1, 26]
 
 ### Analyse des prédicteurs
 
-En premier lieux on regarde si il existe de possible correlation entre les prédicteurs.
+En premier lieu, on regarde s'il existe de possibles correlations entre les prédicteurs.
 
-![Correlation X1 à X8](corre1.png){width=30%} 
-![Correlation X9 à X16](corre2.png){width=30%} 
+![Corrélation X1 à X8](corre1.png){width=50%} 
+![Corrélation X9 à X16](corre2.png){width=50%} 
 
-Il ne semble pas y avoir de liens évidents qui nous permettrais d'éliminer certaines variables.
+A priori, il ne semble pas y avoir de liens évidents qui nous permettraient d'éliminer certaines variables, hormis entre X3 et X4, et X12 et X13 qui semblent suivre une tendance linéaire.
 
 ## Sélection de variables
 
-Au vu du faible nombre de prédicteurs, il ne semble pas nécessaire d'appliquer des méthodes de sélection de variables. 
-Cependant il est toujours intéressant de diminuer la dimensionalité si cela est possible et permet d'améliorer les résultat de notre classification.
+Au vu du faible nombre de prédicteurs, il ne semble pas nécessaire d'appliquer des méthodes de sélection de variables. Cependant il est toujours intéressant de diminuer la dimensionalité si cela est possible et permet d'améliorer les résultats de notre classification.
 
-L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de la vartiance superieur proche de 100% il faut utiliser l'enssemble des prédicteurs. Il n'y à pas un "gap" qui permette avec un sous enssrmble de composantes d'expliquer une grande proportion de la variance.
+L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de la variance supérieure proche de 100% il faut utiliser l'ensemble des prédicteurs. Il n'y a pas un "gap" qui permette, avec un sous-ensemble de composantes, d'expliquer une grande proportion de la variance.
 
-![Pourcentage de variances expliquées en fonction des composantes principales](ACP_letter.png){width=53%} 
+Une autre idée est de sélectionner les variables qui ont la plus grande importance dans en utilisant l'importance des variables avec la méthode des forêts aléatoires.
 
-Une autrre idée est de sélectionner les variables qui ont la plus grande importance dans le modèle de la randomForest.
+![Importances des variables, forêt aléaroire](rf_letter.png){width=60%} 
 
-![Importances des variables, forêt aléaroire](rf_letter.png){width=53%} 
+Cette idée est notamment renforcée par le fait que les modèles basés sur la forêt aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur).
 
-Cette idée est notament renforcé par le fait que les modèle basé sur la forête aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur).
-
-Enfin nous testons les modèle de sélection de variable ridge et lasso. Mais ceux-ci ne ^résentent pas de très bonne performance (relativement aux autres méthodes testers). Ce qui conforte l'idée qu'une sélection de variable ne semble pas être ici très pertinente.
+Enfin nous testons les modèle de sélection de variables ridge et lasso. Ceux-ci ne présentent pas de très bonnes performances (relativement aux autres méthodes testées). Cela conforte l'idée qu'une sélection de variable ne semble pas être très pertinente ici.
 
 ## Entraînement des modèles
 
-Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, mélange aléatoire gaussien (GMM), mélange aléatoire gaussien avec analyse discriminante (GMM_EDDA), séparateur à Vaste Marge (KSVM) avec plusieurs noyaux, résaux de neurone. 
+Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, Mélange Aléatoire Gaussien (GMM), Mélange Aléatoire Gaussien avec Analyse Discriminante (GMM_EDDA), Séparateur à Vaste Marge (KSVM) avec plusieurs noyaux et les réseaux de neurones (nn). 
 
-Ici Bagging prend comme paramètre mtry = 16 (le nombre de prédicteurs), la forête aléatoire prend comme paramètre mtry = 4 (racine carré du nombre de prédicteurs). Enfin grâce à la fonction tuneRF on recherche le paramètre mtry optimale.
+Ici Bagging prend comme paramètre `mtry = 16` (le nombre de prédicteurs), forêt aléatoire prend comme paramètre `mtry = 4` (racine carrée du nombre de prédicteurs). Enfin, grâce à la fonction `tuneRF` de la librarie `randomForest`, on recherche le paramètre  mtry` optimal.
 
 ```{r eval=FALSE}
 tuneRF(data_class.train[,2:17], data_class.train$Y, stepFactor=1.5, improve=1e-5, ntree=500)
 ```
 
-Ces algorithmes sont dans un premiers temps tester avec l'ensssemble des prédicteurs. Cette première étude nous permet de voir si des modèle se distingue déjà fortement des autres, ce qui nous permettra une étude aprofondie. 
+Dans un premier temps, ces algorithmes sont testés avec l'ensemble des prédicteurs. Cette première étude nous permet de voir si des modèles se distinguent déjà fortement des autres, ce qui nous permettra de réaliser une étude approfondie. 
 
 Pour chaque modèle, nous réalisons une validation croisée à 10 plis. Pour certains classifieurs nécessitant de spécifier un hyperparamètre, nous utilisons une validation croisée imbriquée pour obtenir l'hyperparamètre optimal. 
 
 
 |     **Modèle**     |   KNN  | Ridge | Lasso | RF mtry |
-|--------------|:------:|:-----:|:-----:|:-----:|
+|----------|:------:|:-----:|:-----:|:-----:|
 | **Hyperparamètre** | K = 1 | $\bar{\lambda}$ = 0.008674308 | $\bar{\lambda}$ = 8.615844e-05 | mtry = 2.4 (en moyenne) |
 Table: Valeur des hyperparamètres optimaux pour chaque modèle
 
 ### KSVM
 
-Au cours de nos tests, nous essayons d'appliquer le modèle de sépoarateur à vaste marge avec le noyaux "Radial Basis Function". Pour ce faire oncalcul dans un premier temps l'erreur que l'on obtients pour différentes valeurs de C : 0.001, 0.01, 1, 10, 100, 1 000, 100 000. On s'apérçois alors de l'éfficacité du modèle qui à une erreur miniamle pour C = 10 de 4,7%.
-Ce résultats très encourageant aux vues des performances des autres modèles (seul les modèles de forêt aléatoire font mieux), nous pousse à approfondire nos recherche sur ce type de solution.
-Ainsi pour chaque type de noyaux nous essyons de déterminer le taux d'erreur en fonction de l'hyperparamètre C.
-
-![Erreur KSVM noyaux "plynome" en fonction de l'hyperparamètre C](C_poly.png){width=20%} 
-
-![Erreur KSVM noyaux "Laplace" en fonction de l'hyperparamètre C](C_laplace.png){width=20%}
-
-![Erreur KSVM noyaux "radial basis function" en fonction de l'hyperparamètre C](C_rbfdot.png){width=20%}
-
-![Erreur KSVM noyaux "Bessel" en fonction de l'hyperparamètre C](C_bessel.png){width=20%}
-
-![Erreur KSVM noyaux "tangente hyperbolique" en fonction de l'hyperparamètre C](C_tanhdot.png){width=20%}
+Au cours de nos tests, nous essayons d'appliquer un SVM avec le noyau "Radial Basis Function". Pour ce faire, on calcule l'erreur obtenue pour différentes valeurs de C : 0.001, 0.01, 1, 10, 100, 1 000, 100 000. On s'aperçoit alors de l'efficacité du modèle qui a une erreur minimale de 4,7% pour $C = 10$.
+Ce résultat très encourageant au vu des performances des autres modèles (seuls les modèles de forêt aléatoire font mieux), nous pousse à approfondire nos recherches sur ce type de solution.
+Ainsi pour chaque type de noyaux, nous essayons de déterminer le taux d'erreur en fonction de l'hyperparamètre C.
 
 
 |     **Noyaux**     | RBF | Laplace | Bessel | polynome | tanh |
 |--------------------|:------:|:-----:|:-----:|:-----:|:-----:|
 | **taux d'erreur miniaml** | 0.423 | 0.0445 | 0.269 | 0.1484 | > 0.8 |
 | **C correspondant** | 100 | 10 | 0.1 | 1 | 0.01 |
-Table: Valeur des hyperparamètres optimaux pour chaque modèle
+Table: Valeur des hyperparamètres optimaux pour chaque noyau du SVM
 
-On constate que les deux modèle qui se distingue des autres par leurs bonne performance sont ceux qui utilisent le noyau "Laplace" ainsi que le noyau "Radial Basis fuinction". Il est normale que ces deux modèle ai des résultats très proche car les fonction de noyaux sont similaire. 
-Ainsi KSVM donne de très bonne performance de 4.42% de taux d'erreur avec le noyaux "Laplace".
+On constate que les deux modèles qui se distinguent des autres par leur bonne performance sont ceux qui utilisent le noyau "Laplace" ainsi que le noyau "Radial Basis Function". Il est normal que ces deux modèles aient des résultats très proches car les fonctions de noyaux sont similaires. 
+Ainsi KSVM donne de très bonnes performances de 4.42% de taux d'erreur avec le noyau "Laplace".
 
-Enfin puisque le modèle de séparateur à vaste marge se distingue des autres pour ces deux noyaux, nous aprofondissons nos recherche en essayant d'appliquer une sélection de variable en returant celle qui sont moins important aux sens de la forêt aléatoire. Cependdant o,n constate que chaque prédicteurs enlevé augment le taux d'erreurs, continuant de nous convaicnre de la non pertinence d'une séléction de variable.
+Enfin puisque le SVM se distingue des autres pour ces deux noyaux, nous approfondissons nos recherches en essayant d'appliquer une sélection de variables en retirant celles qui sont moins importantes au sens de la forêt aléatoire. Cependant on constate que chaque prédicteur enlevé augmente le taux d'erreur.
 
 ## Résultats
 
-Après avoir testé tous les modèles, nous obtenons la figure ci-dessous résumant le taux d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement plutôt performants avec des écart-types inégaux mais relativement faibles. 
-En effet étant donné qu'il y a 26 classe, le taux d'erreur d'une classification aléatoire est de 25/26 et ici, le pire modèle à un taux d'erreur inferieur à 50%.
+Après avoir testé tous les modèles, nous obtenons la figure 5 résumant le taux d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement performants avec des écart-types inégaux mais relativement faibles. 
+En effet étant donné qu'il y a 26 classes, le taux d'erreur d'une classification aléatoire est de 25/26 et ici, le pire modèle à un taux d'erreur inferieur à 50%.
 
 ![Résultats des modèles pour le dataset `letter`](letter_all.png)
 
-|     **Modèle**     | LDA | QDA | FDA | NB | KNN | Ridge | Lasso | TREE | pTREE | Bagging | RF |  mtry | SVM RBF | SVM Laplace | GMM | GMM_EDDA | nn |
-|--------------|:------:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| **Taux d'erreur** | 0.29688274 | 0.29209576 | 0.29790361 | 0.35858332 |  0.07030073 |  0.27799749   | 0.22360204 | 0.52831371 | 0.52831371 | 0.02599946 | 0.02550019 | 0.02549945 | 0.04550196 | 0.04550196 | 0.07610000 | 0.12000000 | 0.40479464 |
-Table: Erreur moyenne de la validation croisé pour chaque modèle
+Les pires modèles sont l'arbre et l'arbre élagué (qui en fait ici est toujours le même arbre). Ensuite le modèle avec le moins bon taux d'erreur est le réseau de neurones. Cela n'est pas surprenant car un réseau de neurones performe une transformation de l'espace des prédicteurs. Or ici, les prédicteurs sont relativement peu nombreux et représente déjà une tranformation des informations initiales (les images de lettres).
 
-Les pires modèles sont l'arbre et l'arbre élagué (qui en fait ici est toujours le même arbre). Ensuite le modèle avec le moins bon taux d'erreur est le résaux de neurones. Cela n'est pas surprenant car un résaux de neurone performe une transformation de l'éspace des prédicteurs. Or ici, les prédicteurs sont relativement peu nombreux et représente déjà une tranformation des inforations initiales (les images de lettres).
-
-A contrario, les modèles basé sur les separateurs à vste marge, précédé par les modèle de forête aléatoie semble particulièrement performant (moins de 5% de taux d'erreurs). De plus ces modèles sont ceux qui présentes les variuances les plus faible. Enfin au vue de la grande différence des taux d'erreur observé suivant ces modèle, ce critère semble suffisament pertinent pour distingué les modèles.
+A contrario, les modèles basés sur les SVM, précédés par les modèles de forêt aléatoire semblent particulièrement performants (moins de 5% de taux d'erreur). De plus ces modèles sont ceux qui présentent les variances les plus faibles. Enfin, au vu de la grande différence des taux d'erreur observés suivant ces modèles, ce critère semble suffisamment pertinent pour distinguer les modèles.
 
 Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 2**. 
