@@ -178,7 +178,7 @@ Ainsi pour chaque type de noyaux, nous essayons de déterminer le taux d'erreur 
 
 |     **Noyaux**     | RBF | Laplace | Bessel | polynome | tanh |
 |--------------------|:------:|:-----:|:-----:|:-----:|:-----:|
-| **taux d'erreur miniaml** | 0.423 | 0.0445 | 0.269 | 0.1484 | > 0.8 |
+| **taux d'erreur minimal** | 0.423 | 0.0445 | 0.269 | 0.1484 | > 0.8 |
 | **C correspondant** | 100 | 10 | 0.1 | 1 | 0.01 |
 Table: Valeur des hyperparamètres optimaux pour chaque noyau du SVM
 
