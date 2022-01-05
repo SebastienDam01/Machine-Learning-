@@ -36,8 +36,8 @@ En faisant une analyse rapide du jeu de données, nous obtenons les caractérist
 
 En premier lieu, on regarde s'il existe de possibles correlations entre les prédicteurs.
 
-![Corrélation X1 à X8](corre1.png){width=50%} 
-![Corrélation X9 à X16](corre2.png){width=50%} 
+![Corrélation X1 à X8](corre1.png){width=20%} 
+![Corrélation X9 à X16](corre2.png){width=20%} 
 
 A priori, il ne semble pas y avoir de liens évidents qui nous permettraient d'éliminer certaines variables, hormis entre X3 et X4, et X12 et X13 qui semblent suivre une tendance linéaire.
 
@@ -49,7 +49,7 @@ L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de 
 
 Une autre idée est de sélectionner les variables qui ont la plus grande importance dans en utilisant l'importance des variables avec la méthode des forêts aléatoires.
 
-![Importances des variables, forêt aléaroire](rf_letter.png){width=60%} 
+![Importances des variables, forêt aléaroire](rf_letter.png){width=30%} 
 
 Cette idée est notamment renforcée par le fait que les modèles basés sur la forêt aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur).
 
@@ -58,6 +58,19 @@ Enfin nous testons les modèle de sélection de variables ridge et lasso. Ceux-c
 ## Entraînement des modèles
 
 Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, Mélange Aléatoire Gaussien (GMM), Mélange Aléatoire Gaussien avec Analyse Discriminante (GMM_EDDA), Séparateur à Vaste Marge (KSVM) avec plusieurs noyaux et les réseaux de neurones (nn). 
+
+Le résaux de neurones à été genéré grâce au package "nnet" de la façon suivante :
+```{r eval=FALSE}
+nnet(as.factor(Y) ~ ., data=train_data, size=5, linout = TRUE)
+```
+Les mauvais résultats (relatif) ne nous pousserons pas à approfondire ce modèle.
+
+Les arbres ont été crées via la fonction "rpart" avec l'indice de gini. Pour ce qui est de l'arbre élagué nous avons utilisé la fonction "prune".
+```{r eval=FALSE}
+  fit <- rpart(Y ~ ., data = train_data, method="class", parms = list(split = 'gini'))
+  pruned_tree<-prune(fit,cp=fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"])
+```
+
 
 Ici Bagging prend comme paramètre `mtry = 16` (le nombre de prédicteurs), forêt aléatoire prend comme paramètre `mtry = 4` (racine carrée du nombre de prédicteurs). Enfin, grâce à la fonction `tuneRF` de la librarie `randomForest`, on recherche le paramètre  mtry` optimal.
 
@@ -103,5 +116,10 @@ En effet étant donné qu'il y a 26 classes, le taux d'erreur d'une classificati
 Les pires modèles sont l'arbre et l'arbre élagué (qui en fait ici est toujours le même arbre). Ensuite le modèle avec le moins bon taux d'erreur est le réseau de neurones. Cela n'est pas surprenant car un réseau de neurones performe une transformation de l'espace des prédicteurs. Or ici, les prédicteurs sont relativement peu nombreux et représente déjà une tranformation des informations initiales (les images de lettres).
 
 A contrario, les modèles basés sur les SVM, précédés par les modèles de forêt aléatoire semblent particulièrement performants (moins de 5% de taux d'erreur). De plus ces modèles sont ceux qui présentent les variances les plus faibles. Enfin, au vu de la grande différence des taux d'erreur observés suivant ces modèles, ce critère semble suffisamment pertinent pour distinguer les modèles.
+
+|     **Meilleurs modèles**     | RF mtry | RF | Bagging | SVM_rbf | SVM_laplace |
+|--------------------|:------:|:-----:|:-----:|:-----:|:-----:|
+| **taux d'erreur** | 0.01810013 | 0.02550019 | 0.02599946 | 0.04550196  | 0.04550196 |
+Table: taux d'erreurs moyen (validation croisée 10 plis)
 
 Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 2**. 
