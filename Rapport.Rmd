@@ -21,7 +21,7 @@ Ce rapport a pour but de présenter nos démarches pour construire des fonctions
 
 ## Analyse exploratoire
 
-Le jeu de données `Phonèmes` peut être traité comme un problème de classification avec cinq classes. Les fréquences de chaque phonème sont assez équitablement réparties. Nous représentons le log-periodogram sur la figure 1. On observe que les phonèmes `dcl` et `sh` sont assez différents mais pour les autres phonèmes, leur log-periodogram est assez similaire.
+Le jeu de données `Phonèmes` peut être traité comme un problème de classification avec cinq classes. Les fréquences de chaque phonème sont assez équitablement réparties. Nous représentons le log-periodogram sur la Figure 1. On observe que les phonèmes `dcl` et `sh` sont assez différents mais pour les autres phonèmes, leur log-periodogram est assez similaire.
 
 ![Log-periodogram](Log-periodogram.png){width=60%} 
 
@@ -33,7 +33,7 @@ Les variables étant les longueurs des log-periodograms, il ne serait pas pertin
 
 ![Pourcentage de variances expliquées en fonction des composantes principales](variance_PC.png){width=53%} 
 
-Ainsi, les 50 premières composantes principales expliquent environ 91.04% de la variance. Nous décidons donc de garder les 50 premières composantes principales. Nous aurions également pu appliquer une validation croisée pour obtenir le nombre de composantes principales optimal. Cependant, étant donné qu'augmenter de 50 composantes de plus nous permet de gagner environ 3.5% et qu'en retirant un trop grand nombre de composantes, les performances sont réduites de manière trop drastique, nous décidons de garder ces 50 premières composantes principales.  
+Ainsi, les 50 premières composantes principales expliquent environ 91.04% de la variance. Nous décidons donc de garder les 50 premières composantes principales. Nous aurions également pu appliquer une validation croisée pour obtenir le nombre de composantes principales optimal. Cependant, étant donné qu'augmenter de 50 composantes de plus nous permet de gagner environ 3.5% et qu'en retirant un trop grand nombre de composantes, les performances sont réduites de manière trop drastique, nous décidons de garder ces 50 premières composantes principales. Nous n'aurons pas la place d'illustrer nos résultats avec toutes les données sans l'ACP mais il s'avère que pour la majorité des modèles, les résultats sont au moins aussi bons ou pires (en particulier pour la QDA qui approche les 30% d'erreurs).
 
 ## Entraînement des modèles
 
