@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7380 64-bit) (preloaded format=pdflatex 2020.4.4)  4 JAN 2022 11:18
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7380 64-bit) (preloaded format=pdflatex 2020.4.4)  5 JAN 2022 11:08
 entering extended mode
 **./Rapport.tex
 (Rapport.tex
@@ -584,19 +584,19 @@ Overfull \hbox (12.32771pt too wide) in paragraph at lines 296--296
 File: resultats_phonemes.jpeg Graphic file (type jpg)
 <use resultats_phonemes.jpeg>
 Package pdftex.def Info: resultats_phonemes.jpeg  used on input line 345.
-(pdftex.def)             Requested size: 451.68639pt x 335.75356pt.
+(pdftex.def)             Requested size: 328.84692pt x 244.44289pt.
 [4 <./resultats_phonemes.jpeg>]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 4
 00.
 ("S:\Program Files(x86)\MiKTeX 2.9\tex/latex/lm\ts1lmr.fd"
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-<corre1.png, id=52, 461.47406pt x 338.01282pt>
+<corre1.png, id=54, 461.47406pt x 338.01282pt>
 File: corre1.png Graphic file (type png)
 <use corre1.png>
 Package pdftex.def Info: corre1.png  used on input line 424.
 (pdftex.def)             Requested size: 234.87686pt x 172.03868pt.
-<corre2.png, id=53, 461.47406pt x 338.01282pt>
+<corre2.png, id=55, 461.47406pt x 338.01282pt>
 File: corre2.png Graphic file (type png)
 <use corre2.png>
 Package pdftex.def Info: corre2.png  used on input line 425.
@@ -606,92 +606,96 @@ Overfull \hbox (2.22092pt too wide) in paragraph at lines 424--426
 [][] [] 
  []
 
-<rf_letter.png, id=54, 461.47406pt x 338.01282pt>
+<rf_letter.png, id=56, 461.47406pt x 338.01282pt>
 File: rf_letter.png Graphic file (type png)
 <use rf_letter.png>
-Package pdftex.def Info: rf_letter.png  used on input line 451.
-(pdftex.def)             Requested size: 281.85786pt x 206.45055pt.
+Package pdftex.def Info: rf_letter.png  used on input line 448.
+(pdftex.def)             Requested size: 234.87686pt x 172.03868pt.
 [5 <./corre1.png> <./corre2.png>]
-Overfull \hbox (4.20877pt too wide) in alignment at lines 505--521
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
+492.
+("S:\Program Files(x86)\MiKTeX 2.9\tex/latex/lm\ts1lmtt.fd"
+File: ts1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
+)
+Overfull \hbox (4.20877pt too wide) in alignment at lines 524--540
  [] [] [] [] [] 
  []
 
 
-Overfull \hbox (4.20877pt too wide) in alignment at lines 521--535
+Overfull \hbox (4.20877pt too wide) in alignment at lines 540--554
  [] [] [] [] [] 
  []
 
 
-Overfull \hbox (4.20877pt too wide) in alignment at lines 535--539
+Overfull \hbox (4.20877pt too wide) in alignment at lines 554--558
  [] [] [] [] [] 
  []
 
 [6 <./rf_letter.png>]
-<letter_all.png, id=82, 490.08093pt x 341.77687pt>
+<letter_all.png, id=83, 490.08093pt x 341.77687pt>
 File: letter_all.png Graphic file (type png)
 <use letter_all.png>
-Package pdftex.def Info: letter_all.png  used on input line 596.
-(pdftex.def)             Requested size: 328.8386pt x 229.3283pt.
+Package pdftex.def Info: letter_all.png  used on input line 615.
+(pdftex.def)             Requested size: 352.32707pt x 245.70888pt.
 [7]
-<Correlogramme.png, id=94, 472.76625pt x 441.14813pt>
+<Correlogramme.png, id=95, 472.76625pt x 441.14813pt>
 File: Correlogramme.png Graphic file (type png)
 <use Correlogramme.png>
-Package pdftex.def Info: Correlogramme.png  used on input line 635.
+Package pdftex.def Info: Correlogramme.png  used on input line 690.
 (pdftex.def)             Requested size: 211.39386pt x 197.25606pt.
-<PCA.png, id=96, 752.8125pt x 486.31688pt>
+<PCA.png, id=97, 752.8125pt x 486.31688pt>
 File: PCA.png Graphic file (type png)
 <use PCA.png>
-Package pdftex.def Info: PCA.png  used on input line 636.
+Package pdftex.def Info: PCA.png  used on input line 691.
 (pdftex.def)             Requested size: 258.37662pt x 166.91129pt.
 
-Overfull \hbox (2.23767pt too wide) in paragraph at lines 635--637
+Overfull \hbox (2.23767pt too wide) in paragraph at lines 690--692
 [][] [] 
  []
 
-[8 <./letter_all.png> <./Correlogramme.png> <./PCA.png>]
-LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-659.
-("S:\Program Files(x86)\MiKTeX 2.9\tex/latex/lm\ts1lmtt.fd"
-File: ts1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
+[8 <./letter_all.png>]
 <Best subset indicators.png, id=108, 752.8125pt x 690.32906pt>
 File: Best subset indicators.png Graphic file (type png)
 <use Best subset indicators.png>
-Package pdftex.def Info: Best subset indicators.png  used on input line 665.
+Package pdftex.def Info: Best subset indicators.png  used on input line 726.
 (pdftex.def)             Requested size: 281.856pt x 258.46194pt.
-[9 <./Best subset indicators.png>] [10]
-<MSE_par_modele.png, id=122, 752.8125pt x 547.2947pt>
+[9 <./Correlogramme.png> <./PCA.png>]
+Underfull \vbox (badness 10000) detected at line 817
+ []
+
+[10 <./Best subset indicators.png>]
+<MSE_par_modele.png, id=123, 752.8125pt x 547.2947pt>
 File: MSE_par_modele.png Graphic file (type png)
 <use MSE_par_modele.png>
-Package pdftex.def Info: MSE_par_modele.png  used on input line 773.
-(pdftex.def)             Requested size: 328.83774pt x 239.06503pt.
-<CV_svm.png, id=123, 752.8125pt x 547.2947pt>
+Package pdftex.def Info: MSE_par_modele.png  used on input line 834.
+(pdftex.def)             Requested size: 295.95052pt x 215.15602pt.
+[11 <./MSE_par_modele.png>]
+<CV_svm.png, id=130, 752.8125pt x 547.2947pt>
 File: CV_svm.png Graphic file (type png)
 <use CV_svm.png>
-Package pdftex.def Info: CV_svm.png  used on input line 788.
+Package pdftex.def Info: CV_svm.png  used on input line 849.
 (pdftex.def)             Requested size: 267.77296pt x 194.67094pt.
 
-LaTeX Warning: Command \` invalid in math mode on input line 800.
+LaTeX Warning: Command \` invalid in math mode on input line 861.
 
-[11 <./MSE_par_modele.png> <./CV_svm.png>]
-<MSE en fonction de C.png, id=132, 752.8125pt x 487.8225pt>
+<MSE en fonction de C.png, id=131, 752.8125pt x 487.8225pt>
 File: MSE en fonction de C.png Graphic file (type png)
 <use MSE en fonction de C.png>
-Package pdftex.def Info: MSE en fonction de C.png  used on input line 819.
-(pdftex.def)             Requested size: 281.856pt x 182.64268pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 823.
-[12 <./MSE en fonction de C.png>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 823.
+Package pdftex.def Info: MSE en fonction de C.png  used on input line 880.
+(pdftex.def)             Requested size: 258.37662pt x 167.42804pt.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 884.
+[12 <./CV_svm.png> <./MSE en fonction de C.png>]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 884.
 (Rapport.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 823.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 823.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 884.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 884.
  ) 
 Here is how much of TeX's memory you used:
- 14060 strings out of 480931
- 206059 string characters out of 2907252
- 497141 words of memory out of 3000000
- 29484 multiletter control sequences out of 15000+200000
- 589077 words of font info for 133 fonts, out of 3000000 for 9000
+ 14064 strings out of 480931
+ 206137 string characters out of 2907252
+ 498238 words of memory out of 3000000
+ 29485 multiletter control sequences out of 15000+200000
+ 589171 words of font info for 134 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,8n,42p,808b,441s stack positions out of 5000i,500n,10000p,200000b,50000s
 {S:/Program Files(x86)/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc}{S:/Progra
@@ -710,9 +714,9 @@ KTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><S:/Program Files(x86)/MiKTeX 2.9/fon
 ts/type1/public/lm/lmtk10.pfb><S:/Program Files(x86)/MiKTeX 2.9/fonts/type1/pub
 lic/lm/lmtt10.pfb><S:/Program Files(x86)/MiKTeX 2.9/fonts/type1/public/lm/lmtti
 10.pfb>
-Output written on Rapport.pdf (12 pages, 515269 bytes).
+Output written on Rapport.pdf (12 pages, 522422 bytes).
 PDF statistics:
- 255 PDF objects out of 1000 (max. 8388607)
- 59 named destinations out of 1000 (max. 500000)
+ 256 PDF objects out of 1000 (max. 8388607)
+ 60 named destinations out of 1000 (max. 500000)
  30922 words of extra memory for PDF output out of 35830 (max. 10000000)
 
