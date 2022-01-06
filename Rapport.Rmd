@@ -23,7 +23,7 @@ Ce rapport a pour but de présenter nos démarches pour construire des fonctions
 
 Le jeu de données `Phonèmes` peut être traité comme un problème de classification avec cinq classes. Les fréquences de chaque phonème sont assez équitablement réparties. Nous représentons le log-periodogram sur la Figure 1. On observe que les phonèmes `dcl` et `sh` sont assez différents mais pour les autres phonèmes, leur log-periodogram est assez similaire.
 
-![Log-periodogram](Log-periodogram.png){width=60%} 
+![Log-periodogram](Log-periodogram.png){width=45%} 
 
 
 ## Sélection de variables
@@ -51,6 +51,18 @@ for(i in (1:10)){
   train_data <- data[-fold[[i]], ]
   #Creating test data
   test_data <- data[fold[[i]], ]
+  
+  #PCA
+  ## train set
+  pca <- princomp(scale(train_data[, 1:256]))
+  U <- pca$loadings
+  train_data <- cbind.data.frame(pca$scores[,1:50], train_data$y)
+  names(train_data)[ncol(train_data)] <- "y"
+  ## test set
+  X <- scale(as.matrix(test_data[, 1:256]))
+  C <- X %*% U[, 1:50]
+  test_data <- cbind.data.frame(C, test_data$y)
+  names(test_data)[ncol(test_data)] <- "y"
 
   X.train <- train_data[,1:50]
   y.train <- train_data[, 51]
@@ -101,9 +113,9 @@ Nous constatons que les modèles les moins performants à l'apprentissage sont l
 
 Les méthodes basées sur l'analyse discriminante donnent globalement de bons résultats. En supposant que les matrices de covariance sont égales pour chaque classe, on obtient de meilleurs résultats. C'est pourquoi LDA, FDA et RDA ont de meilleures performances que QDA. En particulier, RDA est le plus performant, ce qui est cohérent au vu des hyperparamètres obtenus par validation croisée. En effet, on a obtenu des valeurs de $\lambda$ proches de 1 tandis que celles de $\gamma$ étaient assez faibles. Par conséquent, les matrices de covariance régularisées sont similaires aux estimations des matrices de covariance égales, telles qu'utilisées par la LDA. 
 
-Le SVM avec différents noyaux donnent de très bons résultats. Les méthodes avec régularisation sont encore meilleures, notamment avec le lasso. Toutefois, comme évoqué dans la sélection de variables, il faut être vigilant avec ces méthodes car elles ne semblent pas être efficaces avec notre jeu de données.
+Le SVM avec différents noyaux donnent de bons résultats. Les méthodes avec régularisation sont encore meilleures, notamment avec le lasso. Toutefois, comme évoqué dans la sélection de variables, il faut être vigilant avec ces méthodes car elles ne semblent pas être efficaces avec notre jeu de données.
 
-Ainsi, en conclusion, nous choisissons le **insert meilleur modèle**. 
+Ainsi, en conclusion, nous choisissons la **RDA** avec les paramètres $\bar{\lambda}$ = 0.83 et $\bar{\alpha}$ = 0.29.
 
 # Letter recognition
 
@@ -173,7 +185,7 @@ Pour chaque modèle, nous réalisons une validation croisée à 10 plis. Pour ce
 
 |     **Modèle**     |   KNN  | Ridge | Lasso | RF mtry |
 |----------|:------:|:-----:|:-----:|:-----:|
-| **Hyperparamètre** | K = 1 | $\bar{\lambda}$ = 0.008674308 | $\bar{\lambda}$ = 8.615844e-05 | mtry = 2.4 (en moyenne) |
+| **Hyperparamètre** | K = 1 | $\bar{\lambda}$ = 0.008674308 | $\bar{\lambda}$ = 8.615844e-05 | mtry = 2.9 (en moyenne) |
 Table: Valeur des hyperparamètres optimaux pour chaque modèle
 
 ### KSVM
@@ -209,7 +221,7 @@ A contrario, les modèles basés sur les SVM, précédés par les modèles de fo
 | **taux d'erreur** | 0.01810013 | 0.02550019 | 0.02599946 | 0.04550196  | 0.04550196 |
 Table: taux d'erreurs moyen (validation croisée 10 plis)
 
-Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 2**. 
+Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 3**. 
 
 
 # Bike rental
@@ -302,7 +314,7 @@ for(model in models.list)
 }
 ```
 
-Pour ne pas alourdir la rédaction dans le code ci-dessus nous avons remplacé les parties de code peu pertinentes par des "..". Ainsi dans les packages nous avons omis tous les packages nécessaires à l'execution  de chacun des modèles testés (**MASS**, **rpart**, **kernlab**, **gam**,..). Nous avons créé une fonction `get_cv_error` spécifique à chaque modèle qui permet de tenir compte des hyperparamètres et des éventuels traitements spécifiques. Enfin `cv.errors` avec la fonction `map` permet d'appliquer la fonction `get_cv_error` à chaque combinaison de sous-ensembles de prédicteurs. Le package `caret` ne permet pas de calculer la MSE directement mais nous pouvons calculer la RMSE et l'élever au carré pour obtenir la MSE.
+Pour ne pas alourdir la rédaction dans le code ci-dessus nous avons remplacé les parties de code peu pertinentes par des "..". Ainsi dans les packages nous avons omis tous les packages nécessaires à l'execution  de chacun des modèles testés (**MASS**, **rpart**, **e1071** pour les SVM, **gam**,..). Nous avons créé une fonction `get_cv_error` spécifique à chaque modèle qui permet de tenir compte des hyperparamètres et des éventuels traitements spécifiques. Enfin `cv.errors` avec la fonction `map` permet d'appliquer la fonction `get_cv_error` à chaque combinaison de sous-ensembles de prédicteurs. Le package `caret` ne permet pas de calculer la MSE directement mais nous pouvons calculer la RMSE et l'élever au carré pour obtenir la MSE.
 
 ![MSE par modèle](MSE_par_modele.png){width=63%} 
 
