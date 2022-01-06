@@ -107,7 +107,7 @@ errors[, c("MDA_EDDA")] <- 1 - sum(diag(table(cv$classification, factor(phonemes
 
 Après avoir testé tous les modèles, nous obtenons la Figure 3 résumant le pourcentage d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement performants avec des écart-types relativement faibles; le moins bon modèle ayant une erreur moyenne de moins de 15%.
 
-![Résultats des modèles pour le dataset `Phonèmes`](resultats_phonemes.jpeg){width=70%}
+![Résultats des modèles pour le dataset `Phonèmes`](resultats_phonemes.jpeg){width=60%}
 
 Nous constatons que les modèles les moins performants à l'apprentissage sont l'arbre de décision (DT) et l'arbre avec élagage (DT_pruned). Cependant, en utilisant les méthodes ensemblistes avec le Bagging et les forêts aléatoires, nous parvenons à améliorer les résultats. Quant aux GAM, l'apprentissage n'a été réalisé qu'avec des splines sur les trois premières composantes principales, ce qui explique en partie des résultats moins bons.
 
@@ -115,7 +115,7 @@ Les méthodes basées sur l'analyse discriminante donnent globalement de bons r�
 
 Le SVM avec différents noyaux donnent de bons résultats. Les méthodes avec régularisation sont encore meilleures, notamment avec le lasso. Toutefois, comme évoqué dans la sélection de variables, il faut être vigilant avec ces méthodes car elles ne semblent pas être efficaces avec notre jeu de données.
 
-Ainsi, en conclusion, nous choisissons la **RDA** avec les paramètres $\bar{\lambda}$ = 0.83 et $\bar{\alpha}$ = 0.29.
+Ainsi, en conclusion, nous choisissons la **RDA** avec les paramètres $\lambda$ = 0.83 et $\alpha$ = 0.29.
 
 # Letter recognition
 
