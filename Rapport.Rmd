@@ -331,9 +331,8 @@ jan <- data$cnt[1:31]
 dec <- data$cnt[335:365]
 norm((jan-dec),"2")/norm(jan,"2")
 ```
-Nous obtenons que cette "distance" vaut 1.46, nous avons donc testé notre modèle le plus prometteur en multipliant la variable **cnt** par des constantes autour de 1.46 avant d'entraîner le modèle. Ceci à permis de diviser le MSE par 7 par rapport à notre modèles initial et semble donc confirmer nos hypotèses. En pratique cela se traduit par le fait que les courbes du nombre vélos loués dans les données d'entraînement et dans les données de test, ont la même allure à une constante multiplicative près.
+Nous obtenons que cette "distance" vaut 1.46, nous avons donc testé notre modèle le plus prometteur en multipliant la variable **cnt** par des constantes autour de 1.46 avant d'entraîner le modèle. Ceci à permis de diviser le MSE par 7 par rapport à notre modèles initial et semble donc confirmer nos hypotèses. En pratique cela se traduit par le fait que les courbes du nombre vélos loués dans les données d'entraînement et dans les données de test, ont une allure similaire à une constante multiplicative près.
 
-![Nombre de locations par mois](Courbe locations.png){width=30%} 
 
 
 
