@@ -45,15 +45,51 @@ library(e1071)
 
 bike <- read.csv(file="bike_train.csv")
 
-bike$cnt <- bike$cnt*1.29
+bike$cnt <- bike$cnt*1.1
 
 model.bike =svm(cnt ~ weathersit+season+temp+windspeed+hum, 
-                data = bike, kernel="radial", cost=0.87, scale=T)
+                data = bike, kernel="radial", cost=0.9, scale=T)
 
 prediction_bike <- function(dataset){
   library(e1071)
   predict(model.bike, dataset)
 }
+
+
+###### V5
+library(e1071)
+
+bike <- read.csv(file="bike_train.csv")
+
+bike$cnt <- bike$cnt*0.9
+
+model.bike =svm(cnt ~ weathersit+season+temp+windspeed+hum, 
+                data = bike, kernel="radial", cost=1.5, scale=T)
+
+prediction_bike <- function(dataset){
+  library(e1071)
+  predict(model.bike, dataset)
+}
+
+
+
+###### V6
+library(e1071)
+
+bike <- read.csv(file="bike_train.csv")
+
+bike$cnt <- bike$cnt*1.3
+
+model.bike =svm(cnt ~ weathersit+season+temp+windspeed+hum, 
+                data = bike, kernel="radial", cost=1.5, scale=T)
+
+prediction_bike <- function(dataset){
+  library(e1071)
+  predict(model.bike, dataset)
+}
+
+
+
 
 
 
