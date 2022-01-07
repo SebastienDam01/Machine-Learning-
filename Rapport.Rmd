@@ -149,15 +149,15 @@ A priori, il ne semble pas y avoir de liens évidents qui nous permettraient d'�
 
 ## Sélection de variables
 
-Au vu du faible nombre de prédicteurs, il ne semble pas nécessaire d'appliquer des méthodes de sélection de variables. Cependant il est toujours intéressant de diminuer la dimensionalité si cela est possible et permet d'améliorer les résultats de notre classification. L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de la variance supérieure proche de 100% il faut utiliser l'ensemble des prédicteurs. Il n'y a pas un "gap" qui permette, avec un sous-ensemble de composantes, d'expliquer une grande proportion de la variance. Une autre idée est de sélectionner les variables qui ont la plus grande importance dans en utilisant l'importance des variables avec la méthode des forêts aléatoires.
+Au vu du faible nombre de prédicteurs, il ne semble pas nécessaire d'appliquer des méthodes de sélection de variables. Cependant il est toujours intéressant de diminuer la dimensionalité si cela est possible et permet d'améliorer les résultats de notre classification. L'ACP semble être une mauvaise idée. En effet pour obtenir une explication de la variance supérieure proche de 100% il faut utiliser l'ensemble des prédicteurs. Il n'y a pas un "gap" qui permette, avec un sous-ensemble de composantes, d'expliquer une grande proportion de la variance. Une autre idée est de sélectionner les variables qui ont la plus grande importance en utilisant l'importance des variables avec la méthode des forêts aléatoires.
 
 ![Importances des variables, forêt aléaroire](rf_letter.png){width=50%} 
 
-Cette idée est notamment renforcée par le fait que les modèles basés sur la forêt aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur). Enfin nous testons les modèle de sélection de variables ridge et lasso. Ceux-ci ne présentent pas de très bonnes performances (relativement aux autres méthodes testées). Cela conforte l'idée qu'une sélection de variable ne semble pas être très pertinente ici.
+Cette idée est notamment renforcée par le fait que les modèles basés sur la forêt aléatoire se trouvent être les plus performants (entre 2% et 3% de taux d'erreur). Enfin nous testons les modèle de sélection de variables ridge et lasso. Ceux-ci ne présentent pas de très bonnes performances (relativement aux autres méthodes testées). Cela conforte l'idée qu'une sélection de variables ne semble pas être très pertinente ici.
 
 ## Entraînement des modèles
 
-Nous appliquons les algorithmes de classifications suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, Mélange Aléatoire Gaussien (GMM), Mélange Aléatoire Gaussien avec Analyse Discriminante (GMM_EDDA), Séparateur à Vaste Marge (KSVM) avec plusieurs noyaux et les réseaux de neurones (nn). 
+Nous appliquons les algorithmes de classification suivants : Naive Bayes (NB), K plus proches voisins (KNN), Analyse Discriminante Linéaire (LDA), Analyse Discriminante Quadratique (QDA), Analyse Discriminante Factorielle (FDA), Régression Logistique (RL), Ridge, Lasso, arbre de classfication (TREE), arbre de classification élagué (pTREE), Bagging, Forêt Aléatoire (RF), Forêt Aléatoire avec recherche du paramètre optimal mtry, Mélange Aléatoire Gaussien (GMM), Mélange Aléatoire Gaussien avec Analyse Discriminante (GMM_EDDA), Séparateur à Vaste Marge (KSVM) avec plusieurs noyaux et les réseaux de neurones (nn). 
 
 Le réseau de neurones à été genéré grâce au package `nnet` de la façon suivante :
 ```{r eval=FALSE}
@@ -165,7 +165,7 @@ nnet(as.factor(Y) ~ ., data=train_data, size=5, linout = TRUE)
 ```
 Les mauvais résultats (relatifs) ne nous pousseront pas à approfondir ce modèle.
 
-Les arbres ont été crées via la fonction `rpart` avec l'indice de gini. Pour ce qui est de l'arbre élagué nous avons utilisé la fonction `prune`.
+Les arbres ont été créés via la fonction `rpart` avec l'indice de gini. Pour ce qui est de l'arbre élagué nous avons utilisé la fonction `prune`.
 ```{r eval=FALSE}
   fit <- rpart(Y ~ ., data = train_data, method="class", parms = list(split = 'gini'))
   pruned_tree<-prune(fit,cp=fit$cptable[which.min(fit$cptable[,"xerror"]),"CP"])
@@ -191,12 +191,12 @@ Table: Valeur des hyperparamètres optimaux pour chaque modèle
 ### KSVM
 
 Au cours de nos tests, nous essayons d'appliquer un SVM avec le noyau "Radial Basis Function". Pour ce faire, on calcule l'erreur obtenue pour différentes valeurs de C : 0.001, 0.01, 1, 10, 100, 1 000, 100 000. On s'aperçoit alors de l'efficacité du modèle qui a une erreur minimale de 4,7% pour $C = 10$.
-Ce résultat très encourageant au vu des performances des autres modèles (seuls les modèles de forêt aléatoire font mieux), nous pousse à approfondire nos recherches sur ce type de solution.
+Ce résultat très encourageant au vu des performances des autres modèles (seuls les modèles de forêt aléatoire font mieux), nous pousse à approfondir nos recherches sur ce type de solution.
 Ainsi pour chaque type de noyaux, nous essayons de déterminer le taux d'erreur en fonction de l'hyperparamètre C.
 
 |     **Noyaux**     | RBF | Laplace | Bessel | polynome | tanh |
 |--------------------|:------:|:-----:|:-----:|:-----:|:-----:|
-| **taux d'erreur miniaml** | 0.423 | 0.0445 | 0.269 | 0.1484 | > 0.8 |
+| **taux d'erreur minimal** | 0.423 | 0.0445 | 0.269 | 0.1484 | > 0.8 |
 | **C correspondant** | 100 | 10 | 0.1 | 1 | 0.01 |
 Table: Valeur des hyperparamètres optimaux pour chaque noyau du SVM
 
@@ -208,7 +208,7 @@ Enfin puisque le SVM se distingue des autres pour ces deux noyaux, nous approfon
 ## Résultats
 
 Après avoir testé tous les modèles, nous obtenons la figure 5 résumant le taux d'erreur selon chaque modèle. Nous constatons que les modèles sont globalement performants avec des écart-types inégaux mais relativement faibles. 
-En effet étant donné qu'il y a 26 classes, le taux d'erreur d'une classification aléatoire est de 25/26 et ici, le pire modèle à un taux d'erreur inferieur à 50%.
+En effet étant donné qu'il y a 26 classes, le taux d'erreur d'une classification aléatoire est de 25/26 et ici, le pire modèle à un taux d'erreur inférieur à 50%.
 
 ![Résultats des modèles pour le dataset `letter`](letter_all.png){width=75%}
 
@@ -218,8 +218,8 @@ A contrario, les modèles basés sur les SVM, précédés par les modèles de fo
 
 |     **Meilleurs modèles**     | RF mtry | RF | Bagging | SVM_rbf | SVM_laplace |
 |--------------------|:------:|:-----:|:-----:|:-----:|:-----:|
-| **taux d'erreur** | 0.01810013 | 0.02550019 | 0.02599946 | 0.04550196  | 0.04550196 |
-Table: taux d'erreurs moyen (validation croisée 10 plis)
+| **Taux d'erreur** | 0.01810013 | 0.02550019 | 0.02599946 | 0.04550196  | 0.04550196 |
+Table: taux d'erreur moyen (validation croisée à 10 plis)
 
 Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec mtry = 3**. 
 
@@ -228,7 +228,7 @@ Ainsi, en conclusion, nous choisissons le modèle de la **forêt aléatoire avec
 
 ## Analyse  exploratoire
 
-Bike rental est cette fois un problème de régression dans lequel il faut prédire le nombre de locations de vélos sur l'année 2011 selon les conditions environnementales et saisonnières. Il y a à la fois des variables qualitatives et quantitatives. Tout d'abord, nous observons que la variable `yr` vaut toujours 0 peut importe l'observation, donc toutes les données ont été recueillies sur l'année 2011 et nous décidons alors d'enlever cette variable. La variable `instant` correspond simplement aux index relevés, c'est pourquoi nous décidons de la retirer également. 
+Bike rental est cette fois un problème de régression dans lequel il faut prédire le nombre de locations de vélos sur l'année 2012 selon les conditions environnementales et saisonnières. Il y a à la fois des variables qualitatives et quantitatives. Tout d'abord, nous observons que la variable `yr` vaut toujours 0 peut importe l'observation, donc toutes les données ont bien été recueillies sur l'année 2011 et nous décidons alors d'enlever cette variable. La variable `instant` correspond simplement aux index relevés, c'est pourquoi nous décidons de la retirer également. 
 
 Nous avons analysé les tendances selon les mois, saisons, semaines et s'il s'agissait d'une période de vacances ou non. Par exemple, nous observons qu'il y a visiblement plus de locations en printemps et été qu'en automne et hiver. Cela nous permet d'avoir une première vision sur les variables. Cependant, le fait que les données soient issues d'une seule année ne permet pas de conclure sur l'existence d'éventuelles séries temporelles. 
 
@@ -242,9 +242,9 @@ corrplot(matCor, type="upper", method ="color" )
 ![Corrélogramme](Correlogramme.png){width=45%} 
 ![ACP](PCA.png){width=55%}
 
-Comme nous pouvions l'imaginer, certaines variables sont fortement corrélées (**temp** et **atemp**,  **season** et **mnth**). On peut aussi remarquer que les variables qui mesurent la température sont positivement corrélées avec le nombre de locations, ce qui se traduit par un plus grand nombre de locations lorsqu'il fait chaud. Également la variable *wheathersit* est  corrélée négativement avec le nombre de locations, ce qui se traduit par un nombre de locations plus élevé lorsque *wheatersit* est faible (1 : Ciel dégagé, peu nuagueux). 
+Comme nous pouvions l'imaginer, certaines variables sont fortement corrélées (**temp** et **atemp**,  **season** et **mnth**). On peut aussi remarquer que les variables qui mesurent la température sont positivement corrélées avec le nombre de locations, ce qui se traduit par un plus grand nombre de locations lorsqu'il fait chaud. La variable *wheathersit* est également corrélée négativement avec le nombre de locations, ce qui se traduit par un nombre de locations plus élevé lorsque *wheatersit* est faible (1 : Ciel dégagé, peu nuagueux). 
 
-Une ACP confirme l'existence d'un sous-ensemble de predicteurs significatifs puisque nous pouvons remarquer que 6 prédicteurs suffisent à expliquer 80% de la variance expliquée, et au-delà de 6 predicteurs la courbe s'aplatit. Nous pourrions enlever au préalable les varables qui sont manifestement redondantes ou réaliser des prédiction à partir des résultats de l'ACP. Au lieu de cela nous allons laisser le jeu de données dans l'état et laisser la fonction `regsubset` sélectionner les prédicteurs plus significatifs. 
+Une ACP confirme l'existence d'un sous-ensemble de predicteurs significatifs puisque nous pouvons remarquer que 6 prédicteurs suffisent à expliquer 80% de la variance expliquée, et au-delà de 6 predicteurs la courbe s'aplatit. Nous pourrions enlever au préalable les variables qui sont manifestement redondantes ou réaliser des prédictions à partir des résultats de l'ACP. Au lieu de cela nous allons laisser le jeu de données dans l'état et laisser la fonction `regsubset` sélectionner les prédicteurs les plus significatifs. 
 
 
 ## Sélection du meilleur modèle
@@ -255,7 +255,7 @@ leaps <- regsubsets(bike$cnt~. , data=bike, method='forward', nvmax=10)
 ```
 ![Critères de sélection](Best subset indicators.png){width=60%} 
 
-Grâce au package **leaps** nous réalisons une recherche des meilleurs sous-ensemble de préditeurs de taille inférieure ou égale à 10 (les méthodes **forward** et **backward** donnent des résultats presque identiques). Les critères classiques de séléction du meilleur sous-ensemble ne permettent pas de conclure immédiatement quant à la taille optimale du sous-ensemble de prédicteur. En raison de la taille modérée du dataset, nous avons opté pour une recherche plus exahaustive. Nous avons réalisé des fonctions permettant de généer du code dynamiquement à l'interieur d'une boucle de façon à tester une série de modèles differents, pour chaque modèle la boucle teste tous les sous enseble de 1 à 10 prédicteurs, et pour chaque sous-ensemble de chaque modèle la boucle teste une série de hyperparamètres spécifiques au modèle en question. Pour chaque test nous réalisons aussi une validation croisée avec 5 folds, réeptée 10 fois. A l'issue de cette recherche nous obtenons les performances de chaque modèle testé, dans les conditions optimales (sous-ensemble de prédicteurs optimal et hyperparamètres optimaux). La combinatoire est élevée mais en raison de la taille du dataset cette démarche reste réalisable en un temps raisonnable.
+Grâce au package **leaps** nous réalisons une recherche des meilleurs sous-ensemble de prédicteurs de taille inférieure ou égale à 10 (les méthodes **forward** et **backward** donnent des résultats presque identiques). Les critères classiques de séléction du meilleur sous-ensemble ne permettent pas de conclure immédiatement quant à la taille optimale du sous-ensemble de prédicteurs. En raison de la taille modérée du jeu de données, nous avons opté pour une recherche plus exhaustive. Nous avons réalisé des fonctions permettant de générer du code dynamiquement à l'interieur d'une boucle de façon à tester une série de modèles differents, pour chaque modèle la boucle teste tous les sous-ensembles de 1 à 10 prédicteurs, et pour chaque sous-ensemble de chaque modèle la boucle teste une série d'hyperparamètres spécifiques au modèle en question. Pour chaque test nous réalisons aussi une validation croisée avec 5 plis, réeptée 10 fois. A l'issue de cette recherche nous obtenons les performances de chaque modèle testé, dans les conditions optimales (sous-ensembles de prédicteurs optimales et hyperparamètres optimaux). Le temps de compilation est élevé mais en raison de la taille du jeu de données, cette démarche reste réalisable en un temps raisonnable.
 
 ```{r eval=FALSE}
 get_model_formula <- function(id, object, outcome){
@@ -318,11 +318,11 @@ Pour ne pas alourdir la rédaction dans le code ci-dessus nous avons remplacé l
 
 ![MSE par modèle](MSE_par_modele.png){width=63%} 
 
-Le package `caret` renvoie directement la médiane des erreurs de validation croisée. On peut voir que le modèle qui donne la MSE le plus faible est le SVM avec le noyau "Radial Basis Function". Toutefois, nous ne savons pas quelle combinaison (nombre de predicteurs et hyperparamètres du modèle) a permis d'obtenir ce resultat. Nous allons donc mener une recherche plus fine sur ce modèle. Voici les résultats obtenus avec les svm radial kernel lors de la recherche du meilleur modèle.
+Le package `caret` renvoie directement la médiane des erreurs de validation croisée. On peut voir que le modèle qui donne la MSE le plus faible est le SVM avec le noyau "Radial Basis Function". Toutefois, nous ne savons pas quelle combinaison (nombre de predicteurs et hyperparamètres du modèle) a permis d'obtenir ce resultat. Nous allons donc mener une recherche plus fine sur ce modèle. Voici les résultats obtenus avec les SVM avec le noyau “Radial Basis Function” lors de la recherche du meilleur modèle.
 
 ![RMSE optimal](CV_svm.png){width=57%}
 
-Dans cette figure nous pouvons observer le processus de recherche. On teste le modèle avec 10 sous-ensembles de prédicteurs (de 1 à 10) et pour chaque sous-ensemble on teste 10 valeurs du paramètre spécifique au modèle dans le cas du svm avec radial kernel c'est le C (cost). On a donc fait 100 validations croisées pour aboutir au meilleur paramétrage du modèle. La métrique utilisée est toujours la RMSE. On voit qu'il y a 10 paraboles (une par sous-ensemble de predicteurs), chaqune constuée de 10 points (un par valeur de C). La valeur de RMSE la plus faible se trouve sur la $10^{ème}$ parabole. Cela signifie que ça a été obtenu avec le sousensemble de 10 prédicteurs (tous les prédicteurs). Le modèle avec 5 prédicteurs permet aussi d'atteindre des performances très intéressantes, les 5 prédicteurs en question sont : **season**, **weathersit**, **temp**, **hum** et **windspeed**. Le fait que le meilleur modèle soit celui qui utilise tous les prédicteurs peut être dû à l'overfitting. En effet nous avons accès à des données réprésentatives d'une seule année. L'emploi de ce modèle sur des données issues d'autres années permettrait de lever ce doute. Nous retenons le modèle utilisant 5 prédicteurs.
-Nous devons maintenant trouver la valeur de l'hyperparamètre C (Cost) qui a permis d'obtenir ce résultat, pour cela nous pouvons utiliser le package `caret` qui encapsule les valeurs optimales dans la variable `$bestTune`. Nous obtenons que la valeur optimale de C est 2. Une validation croisée plus fine, par pas de 0.1 entre 0 et 6, permet d'obtenir des valeurs autour de 1.5. Pour conclure nous pouvons constater que notre modèle est constitué de 5 prédicteurs relatifs à la météo et il est donc très facilement interprétable. Ceci nous a amenés à émettre une hypothèse pour le tests de performance sur la platéforme Maggle. Nous avons considéré que d'une année à l'autre les données relatives à la météo sont peu susceptibles de changer, par contre ce qui risque de varier est le nombre vélos loués à conditions météo égales. Nous avons donc testé notre modèle le plus prometteur en multipliant la variable **cnt** par des constantes comprises entre 0.5 et 1.5 avant d'entraîner le modèle. Ceci à permis de diviser le MSE par 7 et confirme donc l'hypotèse que les courbes du nombre vélos loués dans les données d'entraînement et dans les données de test, ont la même allure à une constante multiplicative près.
+Dans cette figure nous pouvons observer le processus de recherche. On teste le modèle avec 10 sous-ensembles de prédicteurs (de 1 à 10) et pour chaque sous-ensemble on teste 10 valeurs du paramètre spécifique au modèle dans le cas du SVM avec le noyau "Radial Basis Function" c'est le C (cost). On a donc fait 100 validations croisées pour aboutir au meilleur paramétrage du modèle. La métrique utilisée est toujours la RMSE. On voit qu'il y a 10 paraboles (une par sous-ensemble de predicteurs), chacune constituée de 10 points (un par valeur de C). La valeur de RMSE la plus faible se trouve sur la $10^{ème}$ parabole. Cela signifie que celle-ci a été obtenue avec le sous-ensemble de 10 prédicteurs (tous les prédicteurs). Le modèle avec 5 prédicteurs permet aussi d'atteindre des performances très intéressantes, les 5 prédicteurs en question sont : **season**, **weathersit**, **temp**, **hum** et **windspeed**. Le fait que le meilleur modèle soit celui qui utilise tous les prédicteurs peut être dû à l'overfitting. En effet nous avons accès à des données réprésentatives d'une seule année. L'emploi de ce modèle sur des données issues d'autres années permettrait de lever ce doute. Nous retenons le modèle utilisant 5 prédicteurs.
+Nous devons maintenant trouver la valeur de l'hyperparamètre C (Cost) qui a permis d'obtenir ce résultat, pour cela nous pouvons utiliser le package `caret` qui encapsule les valeurs optimales dans la variable `$bestTune`. Nous obtenons la valeur optimale de C valant 2. Une validation croisée plus fine, par pas de 0.1 entre 0 et 6, permet d'obtenir des valeurs autour de 1.5. Pour conclure nous pouvons constater que notre modèle est constitué de 5 prédicteurs relatifs à la météo et il est donc très facilement interprétable. Ceci nous a amenés à émettre une hypothèse pour les tests de performance sur la plateforme Maggle. Nous avons considéré que d'une année à l'autre les données relatives à la météo sont peu susceptibles de changer, par contre ce qui risque de varier est le nombre de vélos loués à conditions météorologiques égales. Nous avons donc testé notre modèle le plus prometteur en multipliant la variable **cnt** par des constantes comprises entre 0.5 et 1.5 avant d'entraîner le modèle. Ceci à permis de diviser la MSE par 7 et confirme donc l'hypothèse que les courbes du nombre de vélos loués dans les données d'entraînement et dans les données de test, ont la même allure à une constante multiplicative près.
 
 
