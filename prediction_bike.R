@@ -1,35 +1,45 @@
-###### V1
+### V2
 library(e1071)
 
+bike <- read.csv(file="bike_train.csv")
 
-bike <- read.csv(file="data/parole_train.txt")
+bike$weathersit <- as.factor(bike$weathersit)
+bike$season <- as.factor(bike$season)
 
+bike$cnt <- bike$cnt*1.5
 
-model.bike <- svm(cnt~weathersit+temp+windspeed+season+hum, data=bike, kernel="radial", cost=1.5, scale=T)
+model.bike =svm(cnt ~ weathersit+season+temp+windspeed+hum, 
+         data = bike, kernel="radial", cost=0.87, scale=T)
 
 prediction_bike <- function(dataset){
   library(e1071)
+  dataset$weathersit <- as.factor(dataset$weathersit)
+  dataset$season <- as.factor(dataset$season)
   predict(model.bike, dataset)
 }
 
-save("model.bike", "prediction_bike", file = "env.Rdata")
 
-##### fin V1
-
-###### V2
+########## V3
+### V2
 library(e1071)
 
+bike <- read.csv(file="bike_train.csv")
 
-bike <- read.csv(file="data/parole_train.txt")
+bike$weathersit <- as.factor(bike$weathersit)
+bike$season <- as.factor(bike$season)
 
+bike$cnt <- bike$cnt*1.2
 
-model.bike <- svm(cnt~weathersit+temp+windspeed+season+hum+atemp+mnth+
-                    workingday+weekday+holiday, data=bike, kernel="radial", 
-                  cost=4, scale=T)
+model.bike =svm(cnt ~ weathersit+season+temp+windspeed+hum, 
+                data = bike, kernel="radial", cost=0.87, scale=T)
 
 prediction_bike <- function(dataset){
   library(e1071)
+  dataset$weathersit <- as.factor(dataset$weathersit)
+  dataset$season <- as.factor(dataset$season)
   predict(model.bike, dataset)
 }
 
+
 save("model.bike", "prediction_bike", file = "env.Rdata")
+
